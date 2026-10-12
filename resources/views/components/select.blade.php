@@ -1,0 +1,5 @@
+@props(['disabled' => false])
+
+<select @disabled($disabled) {{ $attributes->merge(['class' => 'block w-full rounded-md border border-neutral-300 bg-white px-3.5 py-2.5 text-sm text-neutral-950 shadow-sm focus:border-primary-600 focus:outline-none focus:ring-2 focus:ring-primary-500/30 disabled:cursor-not-allowed disabled:bg-neutral-100']) }}>
+    {{ $slot }}
+</select>

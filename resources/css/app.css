@@ -1,0 +1,148 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+
+/* ============================================================
+   DESIGN TOKENS  (DESIGN.md §4–§8)
+   Colors, typography, radius, and shadows are defined once here
+   and consumed by every component and page via Tailwind v4 themes.
+   ============================================================ */
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Primary (DESIGN.md §4) */
+    --color-primary-50: #f5faff;
+    --color-primary-100: #e3f2fd;
+    --color-primary-500: #2196f3;
+    --color-primary-600: #1976d2;
+    --color-primary-700: #155fa0;
+    --color-primary-800: #123e6b;
+    --color-primary-900: #0b2a4a;
+
+    /* Success */
+    --color-success-100: #dcfce7;
+    --color-success-500: #22c55e;
+    --color-success-700: #15803d;
+
+    /* Warning */
+    --color-warning-100: #fef3c7;
+    --color-warning-500: #f59e0b;
+    --color-warning-700: #b45309;
+
+    /* Error / Danger */
+    --color-danger-100: #fee2e2;
+    --color-danger-500: #ef4444;
+    --color-danger-700: #b91c1c;
+
+    /* Info */
+    --color-info-100: #e0f2fe;
+    --color-info-500: #0ea5e9;
+    --color-info-700: #0369a1;
+
+    /* Neutral */
+    --color-neutral-50: #f9fafb;
+    --color-neutral-100: #f3f4f6;
+    --color-neutral-200: #e5e7eb;
+    --color-neutral-300: #d1d5db;
+    --color-neutral-400: #9ca3af;
+    --color-neutral-500: #6b7280;
+    --color-neutral-600: #4b5563;
+    --color-neutral-700: #374151;
+    --color-neutral-900: #1f2937;
+    --color-neutral-950: #111827;
+
+    /* Type scale (DESIGN.md §5) */
+    --text-display: 3rem;
+    --text-display--line-height: 1.1;
+    --text-display--font-weight: 700;
+
+    --text-h1: 2.25rem;
+    --text-h1--line-height: 1.2;
+    --text-h1--font-weight: 700;
+
+    --text-h2: 1.875rem;
+    --text-h2--line-height: 1.25;
+    --text-h2--font-weight: 700;
+
+    --text-h3: 1.5rem;
+    --text-h3--line-height: 1.3;
+    --text-h3--font-weight: 600;
+
+    --text-h4: 1.25rem;
+    --text-h4--line-height: 1.35;
+    --text-h4--font-weight: 600;
+
+    --text-caption: 0.75rem;
+    --text-caption--line-height: 1.4;
+
+    /* Border radius (DESIGN.md §7) */
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --radius-pill: 999px;
+
+    /* Shadows (DESIGN.md §8) */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 12px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* ============================================================
+   BASE
+   ============================================================ */
+@layer base {
+    html {
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        text-rendering: optimizeLegibility;
+    }
+
+    ::selection {
+        background-color: var(--color-primary-100);
+        color: var(--color-primary-900);
+    }
+
+    /* Keep native dialog visually centered and unobtrusive. */
+    dialog::backdrop {
+        background-color: rgb(17 24 39 / 0.45);
+    }
+}
+
+/* ============================================================
+   COMPONENT-LEVEL UTILITIES
+   ============================================================ */
+
+/* Skeleton shimmer used for loading states (DESIGN.md §31). */
+@layer components {
+    .skeleton {
+        position: relative;
+        overflow: hidden;
+        background-color: var(--color-neutral-200);
+    }
+
+    .skeleton::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.6), transparent);
+        animation: skeleton-shimmer 1.6s infinite;
+    }
+
+    @keyframes skeleton-shimmer {
+        100% {
+            transform: translateX(100%);
+        }
+    }
+
+    /* Thin, unobtrusive scrollbars inside sidebar panels. */
+    .scrollbar-thin {
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-neutral-300) transparent;
+    }
+}
