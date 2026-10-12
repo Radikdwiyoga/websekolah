@@ -68,6 +68,17 @@ class Announcement extends Model
             && ($this->published_at === null || $this->published_at->isPast());
     }
 
+    public function isImage(): bool
+    {
+        if (! $this->attachment_path) {
+            return false;
+        }
+
+        $extension = strtolower(pathinfo($this->attachment_path, PATHINFO_EXTENSION));
+
+        return in_array($extension, ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'], true);
+    }
+
     /**
      * Announcements that are currently visible (published, not scheduled later).
      */

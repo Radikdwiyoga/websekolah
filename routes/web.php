@@ -1,23 +1,41 @@
 <?php
 
 use App\Http\Controllers\AdminAnnouncementController;
+use App\Http\Controllers\AdminAssignmentController;
 use App\Http\Controllers\AdminAttendanceController;
+use App\Http\Controllers\AdminClassController;
+use App\Http\Controllers\AdminGuardianController;
+use App\Http\Controllers\AdminMaintenanceController;
+use App\Http\Controllers\AdminSchoolYearController;
 use App\Http\Controllers\AdminSettingsController;
+use App\Http\Controllers\AdminStudentController;
+use App\Http\Controllers\AdminSubjectController;
+use App\Http\Controllers\AdminSystemLogController;
+use App\Http\Controllers\AdminTeacherController;
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ParentAssignmentController;
 use App\Http\Controllers\ParentAttendanceController;
 use App\Http\Controllers\ParentGradeController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StudentAssignmentController;
 use App\Http\Controllers\StudentAttendanceController;
 use App\Http\Controllers\StudentGradeController;
 use App\Http\Controllers\TeacherAssignmentController;
 use App\Http\Controllers\TeacherAttendanceController;
+use App\Http\Controllers\TeacherClassController;
 use App\Http\Controllers\TeacherGradeController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
+
+// Publicly accessible announcement preview and details (controller checks access if not public)
+Route::prefix('pengumuman')->name('announcements.')->group(function () {
+    Route::get('{announcement}/file', [AnnouncementController::class, 'file'])->name('file');
+    Route::get('{announcement}/berkas', [AnnouncementController::class, 'attachment'])->name('attachment');
+    Route::get('{announcement}', [AnnouncementController::class, 'show'])->name('show');
+});
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'redirect'])->name('dashboard');
@@ -37,6 +55,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard/admin', [DashboardController::class, 'admin'])
         ->middleware('role:admin')
         ->name('dashboard.admin');
+
+    // Profil Pengguna (Semua Peran)
+    Route::get('/profil', [ProfileController::class, 'show'])->name('profile.show');
+    Route::put('/profil/password', [ProfileController::class, 'updatePassword'])->name('profile.update-password');
+
+    // Guru & Admin - Kelas Saya
+    Route::middleware('role:teacher,admin')
+        ->prefix('guru/kelas')
+        ->name('teacher.classes.')
+        ->group(function () {
+            Route::get('/', [TeacherClassController::class, 'index'])->name('index');
+        });
 
     Route::middleware('role:teacher,admin')
         ->prefix('guru/absensi')
@@ -96,10 +126,33 @@ Route::middleware('auth')->group(function () {
             Route::get('{assignment}/berkas', [StudentAssignmentController::class, 'file'])->name('file');
         });
 
+    // Admin - Data Master
+    Route::middleware('role:admin')
+        ->prefix('admin')
+        ->name('admin.')
+        ->group(function () {
+            Route::get('siswa', [AdminStudentController::class, 'index'])->name('students.index');
+            Route::get('guru', [AdminTeacherController::class, 'index'])->name('teachers.index');
+            Route::get('orang-tua', [AdminGuardianController::class, 'index'])->name('guardians.index');
+            Route::get('kelas', [AdminClassController::class, 'index'])->name('classes.index');
+            Route::get('mata-pelajaran', [AdminSubjectController::class, 'index'])->name('subjects.index');
+            Route::get('tahun-ajaran', [AdminSchoolYearController::class, 'index'])->name('school-years.index');
+            Route::post('tahun-ajaran/{schoolYear}/aktifkan', [AdminSchoolYearController::class, 'activate'])->name('school-years.activate');
+
+            Route::get('tugas', [AdminAssignmentController::class, 'index'])->name('assignments.index');
+
+            Route::get('maintenance', [AdminMaintenanceController::class, 'index'])->name('maintenance.index');
+            Route::post('maintenance/toggle', [AdminMaintenanceController::class, 'toggle'])->name('maintenance.toggle');
+            Route::post('maintenance/clear-cache', [AdminMaintenanceController::class, 'clearCache'])->name('maintenance.clear-cache');
+
+            Route::get('system-logs', [AdminSystemLogController::class, 'index'])->name('system-logs.index');
+        });
+
     Route::middleware('role:admin')
         ->prefix('admin/absensi')
         ->name('admin.attendance.')
         ->group(function () {
+            Route::get('/', [AdminAttendanceController::class, 'index'])->name('index');
             Route::get('rekap', [AdminAttendanceController::class, 'recap'])->name('recap');
             Route::get('rekap/ekspor', [AdminAttendanceController::class, 'recapExport'])->name('recap.export');
         });
@@ -116,8 +169,6 @@ Route::middleware('auth')->group(function () {
         ->name('announcements.')
         ->group(function () {
             Route::get('/', [AnnouncementController::class, 'index'])->name('index');
-            Route::get('{announcement}', [AnnouncementController::class, 'show'])->name('show');
-            Route::get('{announcement}/berkas', [AnnouncementController::class, 'attachment'])->name('attachment');
         });
 
     Route::middleware('role:admin')

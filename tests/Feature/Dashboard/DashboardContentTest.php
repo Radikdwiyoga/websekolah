@@ -228,7 +228,7 @@ class DashboardContentTest extends TestCase
             ->assertSee('Belum ada notifikasi')
             ->assertSee('Aktivitas Sistem Terbaru')
             ->assertSee('Belum ada aktivitas')
-            ->assertSee('Fitur akan segera tersedia')
+            ->assertSee('Buka')
             ->assertSee('Online')
             ->assertSee('Database')
             ->assertSee('Belum Digunakan');

@@ -44,6 +44,13 @@
 
         <x-card>
             <h2 class="text-base font-semibold text-neutral-900">Isi Pengumuman</h2>
+
+            @if ($announcement->isImage())
+                <div class="mt-4 overflow-hidden rounded-xl border border-neutral-200 bg-neutral-50">
+                    <img src="{{ route('announcements.file', $announcement) }}" alt="{{ $announcement->title }}" class="max-h-[500px] w-full object-contain">
+                </div>
+            @endif
+
             <div class="mt-3 whitespace-pre-line text-sm leading-relaxed text-neutral-700">{{ $announcement->body }}</div>
 
             @if ($announcement->attachment_path)

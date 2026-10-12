@@ -58,7 +58,7 @@
         <x-layout.sidebar :user="$user" />
 
         {{-- Main column --}}
-        <div class="flex min-h-screen flex-col sm:pl-[72px] lg:pl-60">
+        <div class="flex min-h-screen flex-col sm:pl-18 lg:pl-60">
             {{-- Desktop top bar --}}
             <header class="sticky top-0 z-20 hidden h-16 w-full items-center justify-between gap-4 border-b border-neutral-200 bg-white/80 px-6 backdrop-blur sm:flex lg:px-8">
                 <div class="min-w-0">
@@ -70,7 +70,7 @@
                         <x-badge variant="primary" dot>{{ $user->role->label() }}</x-badge>
                         <span class="hidden h-6 w-px bg-neutral-200 sm:block" aria-hidden="true"></span>
                         <x-avatar :name="$user->name" size="sm" />
-                        <span class="hidden max-w-[12rem] truncate text-sm font-medium text-neutral-700 lg:block">{{ $user->name }}</span>
+                        <span class="hidden max-w-48 truncate text-sm font-medium text-neutral-700 lg:block">{{ $user->name }}</span>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
                             <x-button variant="ghost" size="sm" icon="logout">Keluar</x-button>

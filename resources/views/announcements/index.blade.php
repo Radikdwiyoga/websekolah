@@ -15,7 +15,13 @@
         @else
             <div class="grid gap-4 lg:grid-cols-2">
                 @foreach ($announcements as $announcement)
-                    <x-card class="flex flex-col">
+                    <x-card class="flex flex-col overflow-hidden">
+                        @if ($announcement->isImage())
+                            <div class="relative -mx-5 -mt-5 mb-4 aspect-video overflow-hidden bg-neutral-100 sm:-mx-6 sm:-mt-6">
+                                <img src="{{ route('announcements.file', $announcement) }}" alt="{{ $announcement->title }}" class="h-full w-full object-cover" loading="lazy">
+                            </div>
+                        @endif
+
                         <div class="flex flex-wrap items-center justify-between gap-2">
                             <div class="flex flex-wrap items-center gap-2">
                                 <x-badge :variant="$announcement->target_type->variant()">{{ $announcement->target_type->label() }}</x-badge>
