@@ -19,9 +19,6 @@ class CheckInRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'nis' => 'nullable|string|exists:students,nis',
-            'qr_data' => 'nullable|string',
-        ];
+        return [];
     }
 }

@@ -19,6 +19,7 @@ use App\Http\Controllers\ParentAssignmentController;
 use App\Http\Controllers\ParentAttendanceController;
 use App\Http\Controllers\ParentGradeController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\QrCodeAttendanceController;
 use App\Http\Controllers\StudentAssignmentController;
 use App\Http\Controllers\StudentAttendanceController;
 use App\Http\Controllers\StudentGradeController;
@@ -26,7 +27,6 @@ use App\Http\Controllers\TeacherAssignmentController;
 use App\Http\Controllers\TeacherAttendanceController;
 use App\Http\Controllers\TeacherClassController;
 use App\Http\Controllers\TeacherGradeController;
-use App\Http\Controllers\QrCodeAttendanceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -80,6 +80,7 @@ Route::middleware('auth')->group(function () {
             Route::post('{schoolClass}/buka', [TeacherAttendanceController::class, 'open'])->name('open');
             Route::post('sesi/{attendanceSession}/tutup', [TeacherAttendanceController::class, 'close'])->name('close');
             Route::post('sesi/{attendanceSession}/perbarui', [TeacherAttendanceController::class, 'update'])->name('update');
+            Route::post('sesi/{attendanceSession}/scan-qr', [QrCodeAttendanceController::class, 'scan'])->name('scan-qr');
         });
 
     Route::middleware('role:student')
@@ -88,7 +89,7 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
             Route::get('/', [StudentAttendanceController::class, 'index'])->name('index');
             Route::post('{attendanceSession}/absen', [StudentAttendanceController::class, 'checkIn'])->name('check-in');
-            Route::get('qr/{student}', [QrCodeAttendanceController::class, 'generate'])->name('qr.generate');
+            Route::get('qr-kartu', [QrCodeAttendanceController::class, 'image'])->name('qr.image');
             Route::post('qr-check-in', [QrCodeAttendanceController::class, 'checkIn'])->name('qr.check-in');
         });
 

@@ -75,6 +75,44 @@
             @endif
         </x-card>
 
+        {{-- Scan QR code siswa --}}
+        @if ($session && $session->isOpen() && ! $students->isEmpty())
+            <x-card>
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <h2 class="text-base font-semibold text-neutral-900">Scan QR Absensi</h2>
+                        <p class="mt-1 text-sm text-neutral-500">Pindai kartu QR siswa dengan kamera atau alat pemindai, lalu tandai kehadirannya.</p>
+                    </div>
+                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700">
+                        <x-icon name="qr-code" :size="5" />
+                    </span>
+                </div>
+
+                <form method="POST" action="{{ route('teacher.attendance.scan-qr', $session) }}" class="mt-4 space-y-3" data-qr-scanner>
+                    @csrf
+
+                    <div>
+                        <x-input-label for="qr_payload" value="Hasil scan QR code" />
+                        <textarea id="qr_payload" name="qr_payload" rows="2" required data-qr-input
+                            class="mt-1 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                            placeholder="Arahkan kamera ke QR code, atau tempel/skan data QR di sini">{{ old('qr_payload') }}</textarea>
+                        <x-input-error :messages="$errors->get('qr_payload')" class="mt-1" />
+                    </div>
+
+                    <div data-qr-video-wrapper class="hidden overflow-hidden rounded-lg border border-neutral-200">
+                        <video data-qr-video class="h-64 w-full bg-neutral-950 object-cover" muted playsinline></video>
+                    </div>
+
+                    <p class="text-xs text-neutral-500" data-qr-status></p>
+
+                    <div class="flex flex-wrap gap-2">
+                        <x-button type="button" variant="secondary" icon="search" data-qr-start>Aktifkan Kamera</x-button>
+                        <x-button type="submit" icon="check">Tandai Kehadiran</x-button>
+                    </div>
+                </form>
+            </x-card>
+        @endif
+
         {{-- Daftar kehadiran --}}
         @if ($session)
             <form method="POST" action="{{ route('teacher.attendance.update', $session) }}">

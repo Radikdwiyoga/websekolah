@@ -146,3 +146,106 @@ document.querySelectorAll('form[data-submit-loading]').forEach((form) => {
         });
     });
 });
+
+// --- Print QR card ----------------------------------------------------------
+// Buttons marked [data-qr-print] open the browser print dialog. The QR card
+// partial carries the matching @media print rules.
+document.querySelectorAll('[data-qr-print]').forEach((button) => {
+    button.addEventListener('click', () => window.print());
+});
+
+// --- QR scanner (progressive enhancement) -----------------------------------
+// Containers marked [data-qr-scanner] gain camera scanning when the browser
+// supports the BarcodeDetector API. Otherwise the text field still works with
+// hardware scanners or manual entry.
+document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
+    const input = root.querySelector('[data-qr-input]');
+    const startButton = root.querySelector('[data-qr-start]');
+    const wrapper = root.querySelector('[data-qr-video-wrapper]');
+    const video = root.querySelector('[data-qr-video]');
+    const status = root.querySelector('[data-qr-status]');
+
+    if (!input || !startButton || !wrapper || !video) {
+        return;
+    }
+
+    if (!('BarcodeDetector' in window) || !navigator.mediaDevices?.getUserMedia) {
+        startButton.remove();
+        return;
+    }
+
+    let stream = null;
+    let frame = null;
+
+    const stop = () => {
+        if (frame) {
+            window.cancelAnimationFrame(frame);
+            frame = null;
+        }
+
+        if (stream) {
+            stream.getTracks().forEach((track) => track.stop());
+            stream = null;
+        }
+
+        wrapper.classList.add('hidden');
+        startButton.textContent = 'Aktifkan Kamera';
+    };
+
+    const start = async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            video.srcObject = stream;
+            await video.play();
+            wrapper.classList.remove('hidden');
+            startButton.textContent = 'Matikan Kamera';
+
+            if (status) {
+                status.textContent = 'Arahkan QR code siswa ke kamera...';
+            }
+
+            const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+
+            const tick = async () => {
+                if (!stream) {
+                    return;
+                }
+
+                try {
+                    const codes = await detector.detect(video);
+
+                    if (codes.length > 0) {
+                        input.value = codes[0].rawValue;
+
+                        if (status) {
+                            status.textContent = 'QR code terbaca. Tekan "Tandai Kehadiran" untuk menyimpan.';
+                        }
+
+                        stop();
+                        return;
+                    }
+                } catch (error) {
+                    // Ignore transient detection failures and keep scanning.
+                }
+
+                frame = window.requestAnimationFrame(tick);
+            };
+
+            frame = window.requestAnimationFrame(tick);
+        } catch (error) {
+            stop();
+
+            if (status) {
+                status.textContent = 'Kamera tidak dapat diakses. Gunakan alat pemindai atau tempel data QR secara manual.';
+            }
+        }
+    };
+
+    startButton.addEventListener('click', () => {
+        if (stream) {
+            stop();
+        } else {
+            start();
+        }
+    });
+});

@@ -4,6 +4,10 @@
     <div class="mx-auto w-full max-w-xl space-y-6">
         <x-page-header title="Absensi Hari Ini" description="Lakukan absensi di jendela waktu yang telah ditentukan guru." />
 
+        @if ($student && $qrSvg)
+            @include('qr-code.attendance', ['student' => $student, 'qrSvg' => $qrSvg])
+        @endif
+
         @if (! $student)
             <x-empty-state icon="profile" title="Profil siswa belum tersedia">
                 Hubungi administrator untuk melengkapi data profil Anda.
@@ -83,11 +87,7 @@
                         <h2 class="text-xl font-bold text-neutral-950">Sesi absensi sedang berjalan</h2>
                         <p class="mt-1 text-sm text-neutral-600">Kelas {{ $session->schoolClass?->name }}</p>
                         <p class="mt-0.5 text-sm text-neutral-600">{{ $session->open_at }} – {{ $session->close_at }}</p>
-                    </div>
-
-                    <div class="mt-3">
-                        <!-- QR Code Absensi -->
-                        @include('qr-code.attendance', ['student' => $student])
+                        <p class="mt-2 text-sm text-neutral-500">Tunjukkan kartu QR di atas kepada guru, atau tekan tombol berikut untuk absen sendiri.</p>
                     </div>
                 </div>
 

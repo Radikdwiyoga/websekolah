@@ -6,6 +6,7 @@ use App\Enums\AttendanceStatus;
 use App\Http\Requests\Attendance\CheckInRequest;
 use App\Models\AttendanceSession;
 use App\Services\AttendanceService;
+use App\Services\QrCodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -13,7 +14,10 @@ use LogicException;
 
 class StudentAttendanceController extends Controller
 {
-    public function __construct(private readonly AttendanceService $attendance) {}
+    public function __construct(
+        private readonly AttendanceService $attendance,
+        private readonly QrCodeService $qrCodes,
+    ) {}
 
     public function index(Request $request): View
     {
@@ -21,6 +25,7 @@ class StudentAttendanceController extends Controller
 
         $session = null;
         $record = null;
+        $qrSvg = null;
 
         if ($student) {
             $session = AttendanceSession::query()
@@ -30,42 +35,20 @@ class StudentAttendanceController extends Controller
                 ->first();
 
             $record = $session?->records()->where('student_id', $student->id)->first();
+
+            $qrSvg = $this->qrCodes->svgFor($student);
         }
 
         return view('attendance.student.index', [
             'student' => $student,
             'session' => $session,
             'record' => $record,
+            'qrSvg' => $qrSvg,
         ]);
     }
 
     public function checkIn(AttendanceSession $attendanceSession, CheckInRequest $request): RedirectResponse
     {
-        // Jika ada QR code data (dari scan QR code permanen)
-        if ($request->filled('qr_data')) {
-            try {
-                $qrData = json_decode($request->qr_data, true);
-
-                if ($qrData) {
-                    // Gunakan metode check-in permanen via QR code
-                    $record = $this->attendance->checkInQrCode(
-                        $attendanceSession,
-                        $qrData,
-                        $request->user()
-                    );
-
-                    $statusText = $record->status === \App\Enums\AttendanceStatus::Hadir ? 'Hadir' : 'Terlambat';
-
-                    return redirect()->route('student.attendance.index')
-                        ->with('success', 'Absensi via QR Code Permanen tercatat: ' . $statusText . ' (NISN: ' . $qrData['nis'] . ')');
-                }
-            } catch (\Exception $e) {
-                return redirect()->route('student.attendance.index')
-                    ->with('error', 'Gagal check-in via QR Code: ' . $e->getMessage());
-            }
-        }
-
-        // Fallback ke check-in manual (tombol Absen Sekarang)
         try {
             $record = $this->attendance->checkIn($attendanceSession, $request->user()->student, $request->user());
         } catch (LogicException $exception) {

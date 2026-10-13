@@ -5,8 +5,6 @@ namespace App\Services;
 use App\Enums\AttendanceMethod;
 use App\Enums\AttendanceSessionStatus;
 use App\Enums\AttendanceStatus;
-use BaconQrCode\BaconQrCode;
-use BaconQrCode\Renderer\Renderer;
 use App\Models\AttendanceRecord;
 use App\Models\AttendanceSession;
 use App\Models\AttendanceStatusChange;
@@ -262,27 +260,22 @@ class AttendanceService
         ]);
     }
 
-    public function checkInQrCode(AttendanceSession $session, $qrData, User $user): AttendanceRecord
+    /**
+     * Record a check-in triggered by scanning a student's permanent QR code.
+     * The caller must have validated the QR payload signature first.
+     */
+    public function checkInQr(AttendanceSession $session, Student $student, User $user): AttendanceRecord
     {
         if (! $session->isOpen()) {
             throw new LogicException('Sesi absensi sudah ditutup.');
         }
 
-        if ($session->class_id !== $qrData['class_id']) {
-            throw new LogicException('Sesi absensi ini bukan untuk kelas yang sesuai.');
+        if ($session->class_id !== $student->class_id) {
+            throw new LogicException('QR code ini milik siswa kelas lain.');
         }
 
         if ($session->date?->toDateString() !== now()->toDateString()) {
             throw new LogicException('Sesi absensi ini bukan untuk hari ini.');
-        }
-
-        // Cari siswa berdasarkan NISN dari QR code permanen
-        $student = Student::where('nis', $qrData['nis'])
-            ->where('class_id', $qrData['class_id'])
-            ->first();
-
-        if (! $student) {
-            throw new LogicException('Siswa tidak ditemukan berdasarkan NISN pada QR code.');
         }
 
         if ($session->records()->where('student_id', $student->id)->exists()) {
@@ -296,9 +289,9 @@ class AttendanceService
             'student_id' => $student->id,
             'status' => $status,
             'checked_in_at' => now(),
-            'method' => AttendanceMethod::QrCode,
+            'method' => AttendanceMethod::Qr,
             'updated_by' => $user->id,
-            'note' => 'Absensi via QR Code Permanen (NISN: '.$student->nis.')',
+            'note' => 'Absensi via QR code',
         ]);
     }
 
