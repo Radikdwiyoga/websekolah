@@ -6,7 +6,11 @@
             title="Data Siswa"
             description="Daftar seluruh siswa terdaftar, NISN, kelas, dan status keaktifan."
             :breadcrumb="[['label' => 'Dashboard', 'route' => 'dashboard.admin'], ['label' => 'Data Siswa']]"
-        />
+        >
+            <x-slot name="actions">
+                <x-button :href="route('admin.students.create')" icon="plus">Tambah Siswa</x-button>
+            </x-slot>
+        </x-page-header>
 
         <x-card>
             <form method="GET" class="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -45,7 +49,8 @@
                                 <th class="pb-2 pr-4">Kelas</th>
                                 <th class="pb-2 pr-4">Jenis Kelamin</th>
                                 <th class="pb-2 pr-4">Kontak</th>
-                                <th class="pb-2 text-right">Status</th>
+                                <th class="pb-2 pr-4">Status</th>
+                                <th class="pb-2 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-neutral-100">
@@ -61,11 +66,17 @@
                                         </div>
                                     </td>
                                     <td class="py-3 pr-4 text-neutral-600">
-                                        <p class="font-mono text-xs font-semibold text-neutral-800">{{ $student->nisn }}</p>
+                                        <p class="font-mono text-xs font-semibold text-neutral-800">{{ $student->nisn ?? '—' }}</p>
                                         <p class="text-xs text-neutral-400">NIS: {{ $student->nis ?? '—' }}</p>
                                     </td>
                                     <td class="py-3 pr-4">
-                                        <x-badge variant="info">{{ $student->schoolClass?->name ?? 'Belum ada kelas' }}</x-badge>
+                                        @if ($student->schoolClass)
+                                            <a href="{{ route('admin.classes.show', $student->schoolClass) }}">
+                                                <x-badge variant="info">{{ $student->schoolClass->name }}</x-badge>
+                                            </a>
+                                        @else
+                                            <x-badge variant="neutral">Belum ada kelas</x-badge>
+                                        @endif
                                     </td>
                                     <td class="py-3 pr-4 text-neutral-600">
                                         {{ $student->gender === 'L' ? 'Laki-laki' : ($student->gender === 'P' ? 'Perempuan' : ($student->gender ?? '—')) }}
@@ -73,12 +84,24 @@
                                     <td class="py-3 pr-4 text-xs text-neutral-500">
                                         {{ $student->user?->phone ?? '—' }}
                                     </td>
-                                    <td class="py-3 text-right">
+                                    <td class="py-3 pr-4">
                                         @if ($student->is_active)
                                             <x-badge variant="success" dot>Aktif</x-badge>
                                         @else
                                             <x-badge variant="neutral">Nonaktif</x-badge>
                                         @endif
+                                    </td>
+                                    <td class="py-3 text-right">
+                                        <div class="flex items-center justify-end gap-1">
+                                            <x-button :href="route('admin.students.edit', $student)" variant="ghost" size="sm" icon="edit">Edit</x-button>
+                                            <form method="POST" action="{{ route('admin.students.toggle-status', $student) }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <x-button type="submit" variant="ghost" size="sm" :icon="$student->is_active ? 'x-circle' : 'check'">
+                                                    {{ $student->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                                </x-button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach

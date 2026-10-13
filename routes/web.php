@@ -162,9 +162,15 @@ Route::middleware('auth')->group(function () {
         ->name('admin.')
         ->group(function () {
             Route::get('siswa', [AdminStudentController::class, 'index'])->name('students.index');
+            Route::get('siswa/tambah', [AdminStudentController::class, 'create'])->name('students.create');
+            Route::post('siswa', [AdminStudentController::class, 'store'])->name('students.store');
+            Route::get('siswa/{student}/ubah', [AdminStudentController::class, 'edit'])->name('students.edit');
+            Route::put('siswa/{student}', [AdminStudentController::class, 'update'])->name('students.update');
+            Route::patch('siswa/{student}/status', [AdminStudentController::class, 'toggleStatus'])->name('students.toggle-status');
             Route::get('guru', [AdminTeacherController::class, 'index'])->name('teachers.index');
             Route::get('orang-tua', [AdminGuardianController::class, 'index'])->name('guardians.index');
             Route::get('kelas', [AdminClassController::class, 'index'])->name('classes.index');
+            Route::get('kelas/{schoolClass}', [AdminClassController::class, 'show'])->name('classes.show');
             Route::get('mata-pelajaran', [AdminSubjectController::class, 'index'])->name('subjects.index');
             Route::get('tahun-ajaran', [AdminSchoolYearController::class, 'index'])->name('school-years.index');
             Route::post('tahun-ajaran/{schoolYear}/aktifkan', [AdminSchoolYearController::class, 'activate'])->name('school-years.activate');

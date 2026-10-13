@@ -32,4 +32,23 @@ class AdminClassController extends Controller
             'selectedYearId' => $yearId,
         ]);
     }
+
+    /**
+     * Detail of a single class with its enrolled students.
+     */
+    public function show(SchoolClass $schoolClass): View
+    {
+        $schoolClass->load(['schoolYear', 'homeroomTeacher.user'])->loadCount('students');
+
+        $students = $schoolClass->students()
+            ->with('user')
+            ->orderBy('nis')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('admin.classes.show', [
+            'class' => $schoolClass,
+            'students' => $students,
+        ]);
+    }
 }

@@ -46,7 +46,9 @@
                             @foreach ($classes as $class)
                                 <tr>
                                     <td class="py-3 pr-4 font-semibold text-neutral-900">
-                                        {{ $class->name }}
+                                        <a href="{{ route('admin.classes.show', $class) }}" class="text-primary-700 hover:underline">
+                                            {{ $class->name }}
+                                        </a>
                                     </td>
                                     <td class="py-3 pr-4 text-neutral-600">
                                         Kelas {{ $class->level }}

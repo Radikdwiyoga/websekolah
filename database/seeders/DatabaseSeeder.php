@@ -100,6 +100,7 @@ class DatabaseSeeder extends Seeder
             ['key' => 'attendance_close_time', 'value' => '09:00', 'type' => SettingType::Text, 'group' => 'attendance'],
             ['key' => 'attendance_late_after', 'value' => '07:15', 'type' => SettingType::Text, 'group' => 'attendance'],
             ['key' => 'default_grade_weight', 'value' => '100', 'type' => SettingType::Integer, 'group' => 'grading'],
+            ['key' => 'student_default_password', 'value' => 'password', 'type' => SettingType::Text, 'group' => 'student'],
             ['key' => 'whatsapp_message_template', 'value' => 'Assalamu\'alaikum, Bapak/Ibu {parent_name}. Ananda {student_name} dari kelas {class_name} tercatat {status} pada {date} pukul {time}. Terima kasih.', 'type' => SettingType::Text, 'group' => 'whatsapp'],
             ['key' => 'upload_max_size_kb', 'value' => '5120', 'type' => SettingType::Integer, 'group' => 'upload'],
             ['key' => 'upload_allowed_extensions', 'value' => '["pdf","jpg","jpeg","png","doc","docx"]', 'type' => SettingType::Json, 'group' => 'upload'],
