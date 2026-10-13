@@ -19,34 +19,22 @@ class QrCodeAttendanceController extends Controller
     public function __construct(private readonly AttendanceService $attendance) {}
 
     /**
-     * Generate QR code for student attendance check-in.
+     * Generate permanent QR code for student.
+     * QR code berisi: NISN, nama, kelas (tidak berubah-ubah per sesi)
      *
      * @return \Illuminate\Http\Response
      */
     public function generate(Student $student): JsonResponse
     {
-        $session = AttendanceSession::query()
-            ->where('class_id', $student->class_id)
-            ->whereDate('date', now()->toDateString())
-            ->where('status', 'open')
-            ->with('records')
-            ->first();
-
-        if (! $session || ! $session->isOpen()) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Sesi absensi tidak aktif untuk kelas ini hari ini.',
-            ], 400);
-        }
-
-        // Generate QR code data
+        // Data permanen dari siswa (tidak berubah per sesi absensi)
         $qrData = [
-            'student_id' => $student->id,
+            'nis' => $student->nis,
+            'student_name' => $student->user?->name ?? 'Siswa',
+            'class_name' => $student->class?->name ?? 'Kelas',
             'class_id' => $student->class_id,
-            'session_id' => $session->id,
-            'timestamp' => now()->timestamp,
         ];
 
+        // Generate QR code SVG dengan data permanen
         $qrCodeSvg = BaconQrCode\QrCode::render(
             json_encode($qrData),
             Renderer::IMAGE_SVG
@@ -57,12 +45,14 @@ class QrCodeAttendanceController extends Controller
             'qr_code_svg' => $qrCodeSvg,
             'student_name' => $student->user?->name ?? 'Siswa',
             'class_name' => $student->class?->name ?? 'Kelas',
-            'session_open' => $session->isOpen(),
+            'nis' => $student->nis,
+            'is_permanent' => true,
+            'qr_purpose' => 'Absensi tetap (NISN + Nama + Kelas)',
         ]);
     }
 
     /**
-     * Process QR code scan check-in.
+     * Process permanent QR code scan check-in.
      *
      * @return \Illuminate\Http\RedirectResponse
      */
@@ -74,6 +64,11 @@ class QrCodeAttendanceController extends Controller
             'session_id' => 'required|exists:attendance_sessions,id',
             'qr_data' => 'required|string',
         ]);
+
+        $qrData = json_decode($request->qr_data, true);
+        if (! $qrData) {
+            return back()->with('error', 'Format QR code tidak valid.');
+        }
 
         $student = Student::find($data['student_id'])->load('user');
         $session = AttendanceSession::find($data['session_id']);
@@ -96,16 +91,18 @@ class QrCodeAttendanceController extends Controller
             return back()->with('error', 'Siswa sudah melakukan absensi pada sesi ini.');
         }
 
-        // Perform check-in
+        // Perform check-in using the permanent QR code data
         try {
             $record = $this->attendance->checkInQrCode(
                 $session,
-                $student,  // Pass Student model, not $student->user
+                $qrData,  // Pass QR code data yang berisi NISN, class_id, dsb
                 $request->user()
             );
 
+            $statusText = $record->status === \App\Enums\AttendanceStatus::Hadir ? 'Hadir' : 'Terlambat';
+
             return back()
-                ->with('success', 'Absensi via QR Code tercatat: ' . ($record->status === \App\Enums\AttendanceStatus::Hadir ? 'Hadir' : 'Terlambat'));
+                ->with('success', 'Absensi via QR Code Permanen tercatat: ' . $statusText . ' (NISN: '.$qrData['nis'].')');
         } catch (\Exception $e) {
             return back()->with('error', $e->getMessage());
         }

@@ -41,6 +41,31 @@ class StudentAttendanceController extends Controller
 
     public function checkIn(AttendanceSession $attendanceSession, CheckInRequest $request): RedirectResponse
     {
+        // Jika ada QR code data (dari scan QR code permanen)
+        if ($request->filled('qr_data')) {
+            try {
+                $qrData = json_decode($request->qr_data, true);
+
+                if ($qrData) {
+                    // Gunakan metode check-in permanen via QR code
+                    $record = $this->attendance->checkInQrCode(
+                        $attendanceSession,
+                        $qrData,
+                        $request->user()
+                    );
+
+                    $statusText = $record->status === \App\Enums\AttendanceStatus::Hadir ? 'Hadir' : 'Terlambat';
+
+                    return redirect()->route('student.attendance.index')
+                        ->with('success', 'Absensi via QR Code Permanen tercatat: ' . $statusText . ' (NISN: ' . $qrData['nis'] . ')');
+                }
+            } catch (\Exception $e) {
+                return redirect()->route('student.attendance.index')
+                    ->with('error', 'Gagal check-in via QR Code: ' . $e->getMessage());
+            }
+        }
+
+        // Fallback ke check-in manual (tombol Absen Sekarang)
         try {
             $record = $this->attendance->checkIn($attendanceSession, $request->user()->student, $request->user());
         } catch (LogicException $exception) {
