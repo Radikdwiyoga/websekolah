@@ -8,6 +8,8 @@ use App\Enums\AssignmentStatus;
 use App\Enums\AssignmentType;
 use App\Enums\AttendanceStatus;
 use App\Enums\NotificationStatus;
+use App\Enums\PermitStatus;
+use App\Enums\PermitType;
 use App\Enums\Semester;
 use App\Enums\SettingType;
 use App\Enums\SubmissionStatus;
@@ -19,6 +21,7 @@ use App\Models\Assignment;
 use App\Models\AssignmentAnswer;
 use App\Models\AssignmentQuestion;
 use App\Models\AssignmentSubmission;
+use App\Models\AttendancePermit;
 use App\Models\AttendanceRecord;
 use App\Models\AttendanceSession;
 use App\Models\Grade;
@@ -56,6 +59,7 @@ class DatabaseSeeder extends Seeder
         $this->seedTeachingAssignments($schoolYear, $teachers, $classes, $subjects);
 
         $this->seedAttendance($classes->first(), $schoolYear, $students->first());
+        $this->seedPermits($classes->first(), $students->first());
         $this->seedAssignments($classes->first());
 
         $admin = $this->seedAdmins();
@@ -442,6 +446,47 @@ class DatabaseSeeder extends Seeder
 
             $index++;
             $day = $day->subDay();
+        }
+    }
+
+    /**
+     * Seed a few izin/sakit requests so the review queue and student history
+     * are populated for demos.
+     */
+    private function seedPermits(?SchoolClass $class, ?Student $demoStudent): void
+    {
+        if (! $class || ! $demoStudent) {
+            return;
+        }
+
+        AttendancePermit::factory()->create([
+            'student_id' => $demoStudent->id,
+            'date' => now()->toDateString(),
+            'type' => PermitType::Sakit,
+            'reason' => 'Demam dan disarankan istirahat oleh dokter.',
+            'status' => PermitStatus::Pending,
+        ]);
+
+        AttendancePermit::factory()->approved()->create([
+            'student_id' => $demoStudent->id,
+            'date' => now()->subDays(3)->toDateString(),
+            'type' => PermitType::Izin,
+            'reason' => 'Menghadiri acara keluarga di luar kota.',
+        ]);
+
+        $classmate = Student::query()
+            ->where('class_id', $class->id)
+            ->whereKeyNot($demoStudent->id)
+            ->first();
+
+        if ($classmate) {
+            AttendancePermit::factory()->create([
+                'student_id' => $classmate->id,
+                'date' => now()->toDateString(),
+                'type' => PermitType::Izin,
+                'reason' => 'Mengurus dokumen kependudukan bersama orang tua.',
+                'status' => PermitStatus::Pending,
+            ]);
         }
     }
 

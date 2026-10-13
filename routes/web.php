@@ -18,11 +18,15 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ParentAssignmentController;
 use App\Http\Controllers\ParentAttendanceController;
 use App\Http\Controllers\ParentGradeController;
+use App\Http\Controllers\ParentPermitController;
+use App\Http\Controllers\PermitAttachmentController;
+use App\Http\Controllers\PermitController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QrCodeAttendanceController;
 use App\Http\Controllers\StudentAssignmentController;
 use App\Http\Controllers\StudentAttendanceController;
 use App\Http\Controllers\StudentGradeController;
+use App\Http\Controllers\StudentPermitController;
 use App\Http\Controllers\TeacherAssignmentController;
 use App\Http\Controllers\TeacherAttendanceController;
 use App\Http\Controllers\TeacherClassController;
@@ -83,6 +87,18 @@ Route::middleware('auth')->group(function () {
             Route::post('sesi/{attendanceSession}/scan-qr', [QrCodeAttendanceController::class, 'scan'])->name('scan-qr');
         });
 
+    // Guru & Admin - Izin & Sakit (tinjau pengajuan)
+    Route::middleware('role:teacher,admin')
+        ->prefix('guru/izin')
+        ->name('teacher.permits.')
+        ->group(function () {
+            Route::get('/', [PermitController::class, 'index'])->name('index');
+            Route::post('{permit}/tinjau', [PermitController::class, 'review'])->name('review');
+        });
+
+    // Izin & Sakit - unduh lampiran (semua peran yang berhak)
+    Route::get('izin/{permit}/berkas', PermitAttachmentController::class)->name('permits.attachment');
+
     Route::middleware('role:student')
         ->prefix('siswa/absensi')
         ->name('student.attendance.')
@@ -91,6 +107,16 @@ Route::middleware('auth')->group(function () {
             Route::post('{attendanceSession}/absen', [StudentAttendanceController::class, 'checkIn'])->name('check-in');
             Route::get('qr-kartu', [QrCodeAttendanceController::class, 'image'])->name('qr.image');
             Route::post('qr-check-in', [QrCodeAttendanceController::class, 'checkIn'])->name('qr.check-in');
+        });
+
+    // Siswa - Izin & Sakit (pengajuan pribadi)
+    Route::middleware('role:student')
+        ->prefix('siswa/izin')
+        ->name('student.permits.')
+        ->group(function () {
+            Route::get('/', [StudentPermitController::class, 'index'])->name('index');
+            Route::post('/', [StudentPermitController::class, 'store'])->name('store');
+            Route::delete('{permit}', [StudentPermitController::class, 'destroy'])->name('destroy');
         });
 
     Route::middleware('role:teacher,admin')
@@ -206,6 +232,16 @@ Route::middleware('auth')->group(function () {
             Route::get('kehadiran', [ParentAttendanceController::class, 'index'])->name('attendance.index');
             Route::get('tugas', [ParentAssignmentController::class, 'index'])->name('assignments.index');
             Route::get('nilai', [ParentGradeController::class, 'index'])->name('grades.index');
+        });
+
+    // Orang Tua - Izin & Sakit (pengajuan untuk anak)
+    Route::middleware('role:parent')
+        ->prefix('orangtua/izin')
+        ->name('parent.permits.')
+        ->group(function () {
+            Route::get('/', [ParentPermitController::class, 'index'])->name('index');
+            Route::post('/', [ParentPermitController::class, 'store'])->name('store');
+            Route::delete('{permit}', [ParentPermitController::class, 'destroy'])->name('destroy');
         });
 });
 

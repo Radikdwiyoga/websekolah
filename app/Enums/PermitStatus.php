@@ -16,4 +16,16 @@ enum PermitStatus: string
             self::Rejected => 'Ditolak',
         };
     }
+
+    /**
+     * Badge tone used to render the status in the UI.
+     */
+    public function variant(): string
+    {
+        return match ($this) {
+            self::Pending => 'warning',
+            self::Approved => 'success',
+            self::Rejected => 'danger',
+        };
+    }
 }

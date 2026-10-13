@@ -57,6 +57,7 @@ return [
         ['label' => 'Absensi', 'icon' => 'attendance', 'route' => 'admin.attendance.index', 'active' => ['admin.attendance.index'], 'section' => 'Akademik'],
         ['label' => 'Rekap Absensi', 'icon' => 'report', 'route' => 'admin.attendance.recap', 'active' => ['admin.attendance.recap']],
         ['label' => 'Tugas & Penilaian', 'icon' => 'task', 'route' => 'admin.assignments.index', 'active' => ['admin.assignments.*', 'admin.grades.*']],
+        ['label' => 'Izin & Sakit', 'icon' => 'permit', 'route' => 'teacher.permits.index', 'active' => ['teacher.permits.*', 'permits.attachment']],
         ['label' => 'Kelola Pengumuman', 'icon' => 'announcement', 'route' => 'admin.announcements.index', 'active' => ['admin.announcements.*'], 'section' => 'Informasi'],
 
         $shared['announcements'],
@@ -79,6 +80,7 @@ return [
         ['label' => 'Rekap Absensi', 'icon' => 'report', 'route' => 'teacher.attendance.recap', 'active' => ['teacher.attendance.recap']],
         ['label' => 'Tugas', 'icon' => 'task', 'route' => 'teacher.assignments.index', 'active' => ['teacher.assignments.*']],
         ['label' => 'Penilaian', 'icon' => 'grade', 'route' => 'teacher.grades.index', 'active' => ['teacher.grades.*']],
+        ['label' => 'Izin & Sakit', 'icon' => 'permit', 'route' => 'teacher.permits.index', 'active' => ['teacher.permits.*', 'permits.attachment']],
 
         $shared['announcements'],
         $shared['profile'],
@@ -91,6 +93,7 @@ return [
         ],
 
         ['label' => 'Kehadiran Saya', 'icon' => 'attendance', 'route' => 'student.attendance.index', 'active' => ['student.attendance.*'], 'section' => 'Akademik'],
+        ['label' => 'Izin & Sakit', 'icon' => 'permit', 'route' => 'student.permits.index', 'active' => ['student.permits.*']],
         ['label' => 'Tugas', 'icon' => 'task', 'route' => 'student.assignments.index', 'active' => ['student.assignments.*']],
         ['label' => 'Nilai', 'icon' => 'grade', 'route' => 'student.grades.index', 'active' => ['student.grades.*']],
 
@@ -105,6 +108,7 @@ return [
         ],
 
         ['label' => 'Kehadiran Anak', 'icon' => 'attendance', 'route' => 'parent.attendance.index', 'active' => ['parent.attendance.*'], 'section' => 'Akademik'],
+        ['label' => 'Izin & Sakit', 'icon' => 'permit', 'route' => 'parent.permits.index', 'active' => ['parent.permits.*']],
         ['label' => 'Tugas Anak', 'icon' => 'task', 'route' => 'parent.assignments.index', 'active' => ['parent.assignments.*']],
         ['label' => 'Nilai Anak', 'icon' => 'grade', 'route' => 'parent.grades.index', 'active' => ['parent.grades.*']],
 

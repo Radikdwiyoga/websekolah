@@ -14,4 +14,15 @@ enum PermitType: string
             self::Sakit => 'Sakit',
         };
     }
+
+    /**
+     * The attendance status a student receives when this permit is approved.
+     */
+    public function attendanceStatus(): AttendanceStatus
+    {
+        return match ($this) {
+            self::Izin => AttendanceStatus::Izin,
+            self::Sakit => AttendanceStatus::Sakit,
+        };
+    }
 }
