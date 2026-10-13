@@ -168,6 +168,7 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
     const video = root.querySelector('[data-qr-video]');
     const status = root.querySelector('[data-qr-status]');
     const fileInput = root.querySelector('[data-qr-file]');
+    const form = root.tagName === 'FORM' ? root : root.closest('form');
 
     if (!input) {
         return;
@@ -182,14 +183,36 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
         }
     };
 
-    const applyResult = (data) => {
+    const submitForm = () => {
+        if (!form || form.dataset.qrSubmitting === 'true') {
+            return;
+        }
+
+        form.dataset.qrSubmitting = 'true';
+        report('QR code terbaca. Menyimpan kehadiran...');
+
+        window.setTimeout(() => {
+            if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+            } else {
+                form.submit();
+            }
+        }, 350);
+    };
+
+    const applyResult = (data, { submit = false } = {}) => {
         if (!data) {
             return false;
         }
 
         input.value = data;
         input.dispatchEvent(new Event('change', { bubbles: true }));
-        report('QR code terbaca. Tekan "Tandai Kehadiran" untuk menyimpan.');
+
+        if (submit) {
+            submitForm();
+        } else {
+            report('QR code terbaca. Tekan "Tandai Kehadiran" untuk menyimpan.');
+        }
 
         return true;
     };
@@ -233,7 +256,7 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
                 inversionAttempts: 'dontInvert',
             });
 
-            if (result && applyResult(result.data)) {
+            if (result && applyResult(result.data, { submit: true })) {
                 stopCamera();
                 return;
             }
@@ -261,7 +284,7 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
                 startButton.textContent = 'Matikan Kamera';
             }
 
-            report('Arahkan QR code siswa ke kamera...');
+            report('Arahkan QR code siswa ke dalam kotak...');
             frame = window.requestAnimationFrame(scanFrame);
         } catch (error) {
             stopCamera();
@@ -274,6 +297,14 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
             stopCamera();
         } else {
             startCamera();
+        }
+    });
+
+    // Hardware scanners usually end their input with an Enter key press.
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' && ! event.shiftKey) {
+            event.preventDefault();
+            submitForm();
         }
     });
 
@@ -295,7 +326,7 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
             const result = jsQR(imageData.data, imageData.width, imageData.height);
 
-            if (! result || ! applyResult(result.data)) {
+            if (! result || ! applyResult(result.data, { submit: true })) {
                 report('QR code tidak terbaca dari gambar. Coba gunakan gambar yang lebih jelas.');
             }
 

@@ -100,8 +100,12 @@
                             <x-input-error :messages="$errors->get('qr_payload')" class="mt-1" />
                         </div>
 
-                        <div data-qr-video-wrapper class="hidden overflow-hidden rounded-lg border border-neutral-200">
-                            <video data-qr-video class="h-64 w-full bg-neutral-950 object-cover" autoplay muted playsinline></video>
+                        <div data-qr-video-wrapper class="mx-auto hidden w-full max-w-xs">
+                            <div class="relative aspect-[3/4] overflow-hidden rounded-xl border border-neutral-200 bg-neutral-950">
+                                <video data-qr-video class="h-full w-full object-cover" autoplay muted playsinline></video>
+                                <div class="pointer-events-none absolute inset-6 rounded-lg border-2 border-white/70"></div>
+                            </div>
+                            <p class="mt-2 text-center text-xs text-neutral-500">Posisikan QR code siswa di dalam kotak. Kehadiran tersimpan otomatis saat QR terbaca.</p>
                         </div>
 
                         <p class="text-xs text-neutral-500" data-qr-status></p>
