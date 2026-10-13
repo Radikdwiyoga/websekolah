@@ -174,8 +174,54 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
         return;
     }
 
+    // Kept in sessionStorage so the camera resumes automatically after the
+    // auto-submit page reload, without pressing "Aktifkan Kamera" again.
+    const ACTIVE_KEY = 'qr-scanner-active';
+    const LAST_SCAN_KEY = 'qr-scanner-last-scan';
+    const DUPLICATE_WINDOW = 15000;
+
+    const readStorage = (key) => {
+        try {
+            return window.sessionStorage.getItem(key);
+        } catch (error) {
+            return null;
+        }
+    };
+
+    const writeStorage = (key, value) => {
+        try {
+            if (value === null) {
+                window.sessionStorage.removeItem(key);
+            } else {
+                window.sessionStorage.setItem(key, value);
+            }
+        } catch (error) {
+            // Storage may be unavailable (private mode); scanning still works.
+        }
+    };
+
+    const isDuplicateScan = (data) => {
+        const raw = readStorage(LAST_SCAN_KEY);
+
+        if (!raw) {
+            return false;
+        }
+
+        try {
+            const previous = JSON.parse(raw);
+
+            return previous.value === data && (Date.now() - previous.at) < DUPLICATE_WINDOW;
+        } catch (error) {
+            return false;
+        }
+    };
+
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d', { willReadFrequently: true });
+
+    let stream = null;
+    let frame = null;
+    let submitting = false;
 
     const report = (message) => {
         if (status) {
@@ -184,11 +230,12 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
     };
 
     const submitForm = () => {
-        if (!form || form.dataset.qrSubmitting === 'true') {
+        if (!form || submitting) {
             return;
         }
 
-        form.dataset.qrSubmitting = 'true';
+        submitting = true;
+        writeStorage(LAST_SCAN_KEY, JSON.stringify({ value: input.value, at: Date.now() }));
         report('QR code terbaca. Menyimpan kehadiran...');
 
         window.setTimeout(() => {
@@ -200,7 +247,7 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
         }, 350);
     };
 
-    const applyResult = (data, { submit = false } = {}) => {
+    const handleDecoded = (data) => {
         if (!data) {
             return false;
         }
@@ -208,20 +255,19 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
         input.value = data;
         input.dispatchEvent(new Event('change', { bubbles: true }));
 
-        if (submit) {
-            submitForm();
-        } else {
-            report('QR code terbaca. Tekan "Tandai Kehadiran" untuk menyimpan.');
+        if (isDuplicateScan(data)) {
+            report('QR ini baru saja tercatat. Arahkan QR code siswa berikutnya...');
+
+            return false;
         }
+
+        submitForm();
 
         return true;
     };
 
     // --- Camera ---
-    let stream = null;
-    let frame = null;
-
-    const stopCamera = () => {
+    const stopCamera = ({ forget = false } = {}) => {
         if (frame) {
             window.cancelAnimationFrame(frame);
             frame = null;
@@ -230,6 +276,10 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
         if (stream) {
             stream.getTracks().forEach((track) => track.stop());
             stream = null;
+        }
+
+        if (forget) {
+            writeStorage(ACTIVE_KEY, null);
         }
 
         if (wrapper) {
@@ -242,7 +292,7 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
     };
 
     const scanFrame = () => {
-        if (!stream) {
+        if (!stream || submitting) {
             return;
         }
 
@@ -256,8 +306,8 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
                 inversionAttempts: 'dontInvert',
             });
 
-            if (result && applyResult(result.data, { submit: true })) {
-                stopCamera();
+            if (result && handleDecoded(result.data)) {
+                // Keep the live preview; the page reloads once the form submits.
                 return;
             }
         }
@@ -268,6 +318,7 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
     const startCamera = async () => {
         if (!navigator.mediaDevices?.getUserMedia) {
             report('Browser ini tidak mendukung kamera. Gunakan "Unggah Gambar QR" atau alat pemindai.');
+
             return;
         }
 
@@ -275,6 +326,8 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
             stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             video.srcObject = stream;
             await video.play();
+
+            writeStorage(ACTIVE_KEY, '1');
 
             if (wrapper) {
                 wrapper.classList.remove('hidden');
@@ -284,7 +337,7 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
                 startButton.textContent = 'Matikan Kamera';
             }
 
-            report('Arahkan QR code siswa ke dalam kotak...');
+            report('Arahkan QR code siswa ke dalam kotak. Kehadiran tersimpan otomatis saat terbaca.');
             frame = window.requestAnimationFrame(scanFrame);
         } catch (error) {
             stopCamera();
@@ -294,7 +347,7 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
 
     startButton?.addEventListener('click', () => {
         if (stream) {
-            stopCamera();
+            stopCamera({ forget: true });
         } else {
             startCamera();
         }
@@ -304,7 +357,7 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
     input.addEventListener('keydown', (event) => {
         if (event.key === 'Enter' && ! event.shiftKey) {
             event.preventDefault();
-            submitForm();
+            handleDecoded(input.value.trim());
         }
     });
 
@@ -326,8 +379,10 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
             const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
             const result = jsQR(imageData.data, imageData.width, imageData.height);
 
-            if (! result || ! applyResult(result.data, { submit: true })) {
+            if (! result) {
                 report('QR code tidak terbaca dari gambar. Coba gunakan gambar yang lebih jelas.');
+            } else {
+                handleDecoded(result.data);
             }
 
             URL.revokeObjectURL(image.src);
@@ -336,4 +391,11 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
         image.onerror = () => report('Gambar tidak dapat dimuat.');
         image.src = URL.createObjectURL(file);
     });
+
+    // Resume scanning automatically after the auto-submit page reload (or when
+    // the teacher opens this page again in the same tab).
+    if (readStorage(ACTIVE_KEY) === '1') {
+        startCamera();
+    }
 });
+
