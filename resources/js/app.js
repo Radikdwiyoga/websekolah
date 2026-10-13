@@ -1,3 +1,5 @@
+import jsQR from 'jsqr';
+
 // Minimal progressive-enhancement script for shared UI components.
 // No framework — native DOM APIs only.
 
@@ -154,30 +156,49 @@ document.querySelectorAll('[data-qr-print]').forEach((button) => {
     button.addEventListener('click', () => window.print());
 });
 
-// --- QR scanner (progressive enhancement) -----------------------------------
-// Containers marked [data-qr-scanner] gain camera scanning when the browser
-// supports the BarcodeDetector API. Otherwise the text field still works with
-// hardware scanners or manual entry.
+// --- QR scanner -------------------------------------------------------------
+// Containers marked [data-qr-scanner] can read a student's QR code either from
+// the camera ([data-qr-start]) or from an uploaded picture ([data-qr-file])
+// using the jsQR decoder. The text field stays usable with hardware scanners,
+// so the form keeps working even when the camera cannot be used.
 document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
     const input = root.querySelector('[data-qr-input]');
     const startButton = root.querySelector('[data-qr-start]');
     const wrapper = root.querySelector('[data-qr-video-wrapper]');
     const video = root.querySelector('[data-qr-video]');
     const status = root.querySelector('[data-qr-status]');
+    const fileInput = root.querySelector('[data-qr-file]');
 
-    if (!input || !startButton || !wrapper || !video) {
+    if (!input) {
         return;
     }
 
-    if (!('BarcodeDetector' in window) || !navigator.mediaDevices?.getUserMedia) {
-        startButton.remove();
-        return;
-    }
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d', { willReadFrequently: true });
 
+    const report = (message) => {
+        if (status) {
+            status.textContent = message;
+        }
+    };
+
+    const applyResult = (data) => {
+        if (!data) {
+            return false;
+        }
+
+        input.value = data;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        report('QR code terbaca. Tekan "Tandai Kehadiran" untuk menyimpan.');
+
+        return true;
+    };
+
+    // --- Camera ---
     let stream = null;
     let frame = null;
 
-    const stop = () => {
+    const stopCamera = () => {
         if (frame) {
             window.cancelAnimationFrame(frame);
             frame = null;
@@ -188,64 +209,100 @@ document.querySelectorAll('[data-qr-scanner]').forEach((root) => {
             stream = null;
         }
 
-        wrapper.classList.add('hidden');
-        startButton.textContent = 'Aktifkan Kamera';
+        if (wrapper) {
+            wrapper.classList.add('hidden');
+        }
+
+        if (startButton) {
+            startButton.textContent = 'Aktifkan Kamera';
+        }
     };
 
-    const start = async () => {
+    const scanFrame = () => {
+        if (!stream) {
+            return;
+        }
+
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const result = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: 'dontInvert',
+            });
+
+            if (result && applyResult(result.data)) {
+                stopCamera();
+                return;
+            }
+        }
+
+        frame = window.requestAnimationFrame(scanFrame);
+    };
+
+    const startCamera = async () => {
+        if (!navigator.mediaDevices?.getUserMedia) {
+            report('Browser ini tidak mendukung kamera. Gunakan "Unggah Gambar QR" atau alat pemindai.');
+            return;
+        }
+
         try {
             stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
             video.srcObject = stream;
             await video.play();
-            wrapper.classList.remove('hidden');
-            startButton.textContent = 'Matikan Kamera';
 
-            if (status) {
-                status.textContent = 'Arahkan QR code siswa ke kamera...';
+            if (wrapper) {
+                wrapper.classList.remove('hidden');
             }
 
-            const detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+            if (startButton) {
+                startButton.textContent = 'Matikan Kamera';
+            }
 
-            const tick = async () => {
-                if (!stream) {
-                    return;
-                }
-
-                try {
-                    const codes = await detector.detect(video);
-
-                    if (codes.length > 0) {
-                        input.value = codes[0].rawValue;
-
-                        if (status) {
-                            status.textContent = 'QR code terbaca. Tekan "Tandai Kehadiran" untuk menyimpan.';
-                        }
-
-                        stop();
-                        return;
-                    }
-                } catch (error) {
-                    // Ignore transient detection failures and keep scanning.
-                }
-
-                frame = window.requestAnimationFrame(tick);
-            };
-
-            frame = window.requestAnimationFrame(tick);
+            report('Arahkan QR code siswa ke kamera...');
+            frame = window.requestAnimationFrame(scanFrame);
         } catch (error) {
-            stop();
-
-            if (status) {
-                status.textContent = 'Kamera tidak dapat diakses. Gunakan alat pemindai atau tempel data QR secara manual.';
-            }
+            stopCamera();
+            report('Kamera tidak dapat diakses. Aktifkan izin kamera atau jalankan lewat localhost/HTTPS, lalu gunakan "Unggah Gambar QR".');
         }
     };
 
-    startButton.addEventListener('click', () => {
+    startButton?.addEventListener('click', () => {
         if (stream) {
-            stop();
+            stopCamera();
         } else {
-            start();
+            startCamera();
         }
+    });
+
+    // --- Uploaded image ---
+    fileInput?.addEventListener('change', () => {
+        const file = fileInput.files && fileInput.files[0];
+
+        if (!file) {
+            return;
+        }
+
+        const image = new Image();
+
+        image.onload = () => {
+            canvas.width = image.naturalWidth;
+            canvas.height = image.naturalHeight;
+            context.drawImage(image, 0, 0);
+
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            const result = jsQR(imageData.data, imageData.width, imageData.height);
+
+            if (! result || ! applyResult(result.data)) {
+                report('QR code tidak terbaca dari gambar. Coba gunakan gambar yang lebih jelas.');
+            }
+
+            URL.revokeObjectURL(image.src);
+        };
+
+        image.onerror = () => report('Gambar tidak dapat dimuat.');
+        image.src = URL.createObjectURL(file);
     });
 });

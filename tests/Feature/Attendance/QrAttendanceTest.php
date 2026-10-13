@@ -186,6 +186,51 @@ class QrAttendanceTest extends TestCase
         $this->assertStringContainsString('<svg', $response->getContent());
     }
 
+    public function test_teacher_sees_scan_panel_with_hint_when_no_session(): void
+    {
+        $context = $this->makeContext();
+
+        $this->actingAs($context['teacherUser'])
+            ->get(route('teacher.attendance.show', $context['class']))
+            ->assertOk()
+            ->assertSee('Scan QR Absensi')
+            ->assertSee('Buka sesi absensi untuk hari ini');
+    }
+
+    public function test_teacher_sees_active_scan_form_when_session_is_open(): void
+    {
+        $this->freezeClock('08:00');
+
+        $context = $this->makeContext();
+        $session = $this->openSession($context['class'], $context['year'], '09:00');
+
+        $this->actingAs($context['teacherUser'])
+            ->get(route('teacher.attendance.show', $context['class']))
+            ->assertOk()
+            ->assertSee('Scan QR Absensi')
+            ->assertSee('Tandai Kehadiran')
+            ->assertSee('Unggah Gambar QR')
+            ->assertSee(route('teacher.attendance.scan-qr', $session));
+    }
+
+    public function test_teacher_sees_closed_hint_when_session_is_closed(): void
+    {
+        $context = $this->makeContext();
+
+        AttendanceSession::factory()->create([
+            'class_id' => $context['class']->id,
+            'school_year_id' => $context['year']->id,
+            'date' => now()->toDateString(),
+            'status' => AttendanceSessionStatus::Closed,
+            'closed_at' => now(),
+        ]);
+
+        $this->actingAs($context['teacherUser'])
+            ->get(route('teacher.attendance.show', $context['class']))
+            ->assertOk()
+            ->assertSee('Sesi absensi hari ini sudah ditutup');
+    }
+
     /**
      * @return array{year: SchoolYear, teacherUser: User, teacher: Teacher, class: SchoolClass, student: Student, studentUser: User}
      */

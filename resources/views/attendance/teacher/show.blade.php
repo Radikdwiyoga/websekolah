@@ -76,40 +76,55 @@
         </x-card>
 
         {{-- Scan QR code siswa --}}
-        @if ($session && $session->isOpen() && ! $students->isEmpty())
+        @if (! $students->isEmpty())
             <x-card>
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <h2 class="text-base font-semibold text-neutral-900">Scan QR Absensi</h2>
-                        <p class="mt-1 text-sm text-neutral-500">Pindai kartu QR siswa dengan kamera atau alat pemindai, lalu tandai kehadirannya.</p>
+                        <p class="mt-1 text-sm text-neutral-500">Pindai kartu QR siswa dengan kamera, unggah gambar QR, atau pakai alat pemindai, lalu tandai kehadirannya.</p>
                     </div>
                     <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary-100 text-primary-700">
                         <x-icon name="qr-code" :size="5" />
                     </span>
                 </div>
 
-                <form method="POST" action="{{ route('teacher.attendance.scan-qr', $session) }}" class="mt-4 space-y-3" data-qr-scanner>
-                    @csrf
+                @if ($session && $session->isOpen())
+                    <form method="POST" action="{{ route('teacher.attendance.scan-qr', $session) }}" class="mt-4 space-y-4" data-qr-scanner>
+                        @csrf
 
-                    <div>
-                        <x-input-label for="qr_payload" value="Hasil scan QR code" />
-                        <textarea id="qr_payload" name="qr_payload" rows="2" required data-qr-input
-                            class="mt-1 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                            placeholder="Arahkan kamera ke QR code, atau tempel/skan data QR di sini">{{ old('qr_payload') }}</textarea>
-                        <x-input-error :messages="$errors->get('qr_payload')" class="mt-1" />
-                    </div>
+                        <div>
+                            <x-input-label for="qr_payload" value="Hasil scan QR code" />
+                            <textarea id="qr_payload" name="qr_payload" rows="2" required data-qr-input
+                                class="mt-1 block w-full rounded-md border-neutral-300 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                                placeholder="Arahkan kamera ke QR code, unggah gambar, atau tempel/skan data QR di sini">{{ old('qr_payload') }}</textarea>
+                            <x-input-error :messages="$errors->get('qr_payload')" class="mt-1" />
+                        </div>
 
-                    <div data-qr-video-wrapper class="hidden overflow-hidden rounded-lg border border-neutral-200">
-                        <video data-qr-video class="h-64 w-full bg-neutral-950 object-cover" muted playsinline></video>
-                    </div>
+                        <div data-qr-video-wrapper class="hidden overflow-hidden rounded-lg border border-neutral-200">
+                            <video data-qr-video class="h-64 w-full bg-neutral-950 object-cover" autoplay muted playsinline></video>
+                        </div>
 
-                    <p class="text-xs text-neutral-500" data-qr-status></p>
+                        <p class="text-xs text-neutral-500" data-qr-status></p>
 
-                    <div class="flex flex-wrap gap-2">
-                        <x-button type="button" variant="secondary" icon="search" data-qr-start>Aktifkan Kamera</x-button>
-                        <x-button type="submit" icon="check">Tandai Kehadiran</x-button>
-                    </div>
-                </form>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <x-button type="button" variant="secondary" icon="search" data-qr-start>Aktifkan Kamera</x-button>
+
+                            <label class="inline-flex h-11 cursor-pointer items-center justify-center gap-2 rounded-md border border-neutral-200 bg-white px-4 text-sm font-semibold text-neutral-700 shadow-sm transition hover:bg-neutral-100">
+                                <x-icon name="upload" :size="5" />
+                                Unggah Gambar QR
+                                <input type="file" accept="image/*" data-qr-file class="sr-only">
+                            </label>
+
+                            <x-button type="submit" icon="check">Tandai Kehadiran</x-button>
+                        </div>
+                    </form>
+                @else
+                    <x-alert tone="warning" class="mt-4">
+                        {{ $session
+                            ? 'Sesi absensi hari ini sudah ditutup. Scan QR hanya tersedia saat sesi sedang berjalan.'
+                            : 'Buka sesi absensi untuk hari ini terlebih dahulu, lalu scan QR siswa di sini.' }}
+                    </x-alert>
+                @endif
             </x-card>
         @endif
 
