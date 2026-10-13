@@ -5,6 +5,8 @@ namespace App\Services;
 use App\Enums\AttendanceMethod;
 use App\Enums\AttendanceSessionStatus;
 use App\Enums\AttendanceStatus;
+use BaconQrCode\BaconQrCode;
+use BaconQrCode\Renderer\Renderer;
 use App\Models\AttendanceRecord;
 use App\Models\AttendanceSession;
 use App\Models\AttendanceStatusChange;
@@ -257,6 +259,37 @@ class AttendanceService
             'checked_in_at' => now(),
             'method' => AttendanceMethod::Button,
             'updated_by' => $user->id,
+        ]);
+    }
+
+    public function checkInQrCode(AttendanceSession $session, Student $student, User $user): AttendanceRecord
+    {
+        if (! $session->isOpen()) {
+            throw new LogicException('Sesi absensi sudah ditutup.');
+        }
+
+        if ($session->class_id !== $student->class_id) {
+            throw new LogicException('Sesi absensi ini bukan untuk kelas Anda.');
+        }
+
+        if ($session->date?->toDateString() !== now()->toDateString()) {
+            throw new LogicException('Sesi absensi ini bukan untuk hari ini.');
+        }
+
+        if ($session->records()->where('student_id', $student->id)->exists()) {
+            throw new LogicException('Anda sudah melakukan absensi pada sesi ini.');
+        }
+
+        $lateAfter = $session->late_after ?? $this->settings->get('attendance_late_after', '07:15');
+        $status = now()->format('H:i') >= $lateAfter ? AttendanceStatus::Terlambat : AttendanceStatus::Hadir;
+
+        return $session->records()->create([
+            'student_id' => $student->id,
+            'status' => $status,
+            'checked_in_at' => now(),
+            'method' => AttendanceMethod::QrCode,
+            'updated_by' => $user->id,
+            'note' => 'Absensi via QR Code',
         ]);
     }
 

@@ -26,6 +26,7 @@ use App\Http\Controllers\TeacherAssignmentController;
 use App\Http\Controllers\TeacherAttendanceController;
 use App\Http\Controllers\TeacherClassController;
 use App\Http\Controllers\TeacherGradeController;
+use App\Http\Controllers\QrCodeAttendanceController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -87,6 +88,8 @@ Route::middleware('auth')->group(function () {
         ->group(function () {
             Route::get('/', [StudentAttendanceController::class, 'index'])->name('index');
             Route::post('{attendanceSession}/absen', [StudentAttendanceController::class, 'checkIn'])->name('check-in');
+            Route::get('qr/{student}', [QrCodeAttendanceController::class, 'generate'])->name('qr.generate');
+            Route::post('qr-check-in', [QrCodeAttendanceController::class, 'checkIn'])->name('qr.check-in');
         });
 
     Route::middleware('role:teacher,admin')

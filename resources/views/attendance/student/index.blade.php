@@ -33,7 +33,7 @@
 
             <x-card>
                 <div class="flex flex-col items-center gap-4 py-2 text-center">
-                    <span class="flex h-16 w-16 items-center justify-center rounded-full {{ $iconTone }}">
+                    <span class="flex h-16 w-16 items-center justify-center {{ $iconTone }}">
                         <x-icon :name="$isPresent ? 'check' : 'info'" :size="8" />
                     </span>
 
@@ -85,13 +85,18 @@
                         <p class="mt-0.5 text-sm text-neutral-600">{{ $session->open_at }} – {{ $session->close_at }}</p>
                     </div>
 
-                    <form method="POST" action="{{ route('student.attendance.check-in', $session) }}" class="w-full sm:w-auto">
-                        @csrf
-                        <x-button type="submit" size="lg" icon="check" class="w-full sm:w-auto" data-submit-loading>
-                            Absen Sekarang
-                        </x-button>
-                    </form>
+                    <div class="mt-3">
+                        <!-- QR Code Absensi -->
+                        @include('qr-code.attendance', ['student' => $student])
+                    </div>
                 </div>
+
+                <form method="POST" action="{{ route('student.attendance.check-in', $session) }}" class="w-full sm:w-auto">
+                    @csrf
+                    <x-button type="submit" size="lg" icon="check" class="w-full sm:w-auto" data-submit-loading>
+                        Absen Sekarang
+                    </x-button>
+                </form>
             </x-card>
         @endif
     </div>
