@@ -1,58 +1,214 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Website Sekolah
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Sistem informasi sekolah berbasis Laravel yang menggabungkan **website profil sekolah** (halaman publik yang kontennya bisa dikelola sendiri dari panel admin) dengan **platform akademik** untuk absensi digital, tugas & penilaian, izin & sakit, dan pengumuman.
 
-## About Laravel
+[![PHP](https://img.shields.io/badge/PHP-8.3%2B-777bb4?logo=php&logoColor=white)](https://www.php.net/)
+[![Laravel](https://img.shields.io/badge/Laravel-13-ff2d20?logo=laravel&logoColor=white)](https://laravel.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06b6d4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)](https://vitejs.dev/)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Daftar Isi
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- [Fitur](#fitur)
+- [Teknologi](#teknologi)
+- [Persyaratan](#persyaratan)
+- [Instalasi](#instalasi)
+- [Akun Demo](#akun-demo)
+- [Menjalankan Aplikasi](#menjalankan-aplikasi)
+- [Pengujian](#testing)
+- [Struktur Direktori](#struktur-direktori)
+- [Catatan Deployment](#catatan-deployment)
+- [Lisensi](#lisensi)
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Fitur
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Aplikasi memiliki panel berbeda untuk setiap peran (**Admin**, **Guru**, **Siswa**, dan **Orang Tua**) dengan navigasi sidebar yang menyesuaikan hak akses.
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+### 🌐 Website Publik
 
-## Agentic Development
+- **Halaman utama** — hero, keunggulan sekolah, dan program/layanan yang seluruh teks dan ikonnya dapat diubah dari admin.
+- **Profil sekolah** — identitas, alamat, kontak, peta, dan media sosial.
+- **Agenda & Galeri** — kegiatan sekolah dengan media foto (JPG/PNG/WebP) atau video (unggah MP4/WebM/MOV atau embed YouTube/Vimeo).
+- **Pengumuman** dan **mode pemeliharaan** (maintenance) yang bisa diaktifkan dari admin.
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### Admin Sekolah
+
+- **Data master**: siswa, guru, orang tua/wali, kelas, mata pelajaran, dan tahun ajaran (dengan penugasan guru–mapel–kelas).
+- **Akademik**: absensi, rekap absensi, tugas & penilaian, serta pengajuan izin & sakit.
+- **Informasi**: kelola pengumuman untuk seluruh warga sekolah.
+- **Administrasi**:
+  - **Profil Sekolah** – identitas, logo, kontak, dan tautan sosial media.
+  - **Halaman Utama** – hero, daftar keunggulan, dan program (dengan pemilih ikon visual).
+  - **Agenda & Galeri** – CRUD agenda dengan unggah foto/video.
+  - **Pengaturan Sistem** – waktu absensi, bobot nilai, kata sandi default, template pesan WhatsApp, dsb.
+  - **Backup & Ekspor** – rekap absensi dan tugas/nilai dalam format **Excel (multi-sheet)** dan **PDF**.
+  - **Maintenance** & **System Log**.
+- Dua tingkat admin: **Super Admin** dan **Admin Operasional**.
+
+### Guru
+
+- **Kelas Saya** dan penugasan mengajar.
+- **Input Absensi** manual maupun **scan QR code** siswa, termasuk buka/tutup sesi absensi.
+- **Rekap Absensi**, **Tugas & Penilaian**, serta verifikasi **Izin & Sakit**.
+
+### Siswa
+
+- **Kehadiran** pribadi (termasuk kartu QR permanen untuk absensi).
+- **Tugas**, **Nilai**, **Izin & Sakit**, dan **Pengumuman**.
+
+### Orang Tua
+
+- **Kehadiran anak**, **Tugas anak**, dan **Nilai anak**.
+- Pengajuan **Izin & Sakit** serta menerima **pengumuman** sekolah.
+
+---
+
+## Teknologi
+
+| Lapisan | Teknologi |
+| --- | --- |
+| Backend | PHP 8.3+, Laravel 13 |
+| Frontend | Blade, Tailwind CSS 4, Vite 8, JavaScript (vanilla) |
+| Database | SQLite (default) — kompatibel dengan MySQL/MariaDB & PostgreSQL |
+| Ekspor | `maatwebsite/excel` (Excel), `barryvdh/laravel-dompdf` (PDF) |
+| QR Code | `bacon/bacon-qr-code` (generate) + `jsqr` (scan via kamera) |
+| Testing | PHPUnit 12 |
+| Kode style | Laravel Pint |
+
+---
+
+## Persyaratan
+
+- PHP **8.3** atau lebih baru dengan ekstensi `gd`, `mbstring`, `openssl`, `pdo`, `zip`
+- [Composer](https://getcomposer.org/)
+- [Node.js](https://nodejs.org/) 20+ dan npm
+
+---
+
+## Instalasi
+
+1. **Clone repositori**
+
+   ```bash
+   git clone https://github.com/Radikdwiyoga/websekolah.git
+   cd websekolah
+   ```
+
+2. **Instal dependensi, siapkan environment, migrasi, dan build aset**
+
+   ```bash
+   composer run setup
+   ```
+
+   Perintah tersebut menjalankan: `composer install`, menyalin `.env.example` menjadi `.env`, `key:generate`, `migrate`, `npm install`, dan `npm run build`.
+
+3. **Isi data contoh (opsional, disarankan untuk pengembangan)**
+
+   ```bash
+   php artisan db:seed
+   ```
+
+4. **Buat symbolic link penyimpanan** (untuk logo sekolah, foto/video agenda, lampiran izin)
+
+   ```bash
+   php artisan storage:link
+   ```
+
+> Secara default aplikasi memakai **SQLite**. Untuk memakai MySQL, ubah `DB_CONNECTION` dan variabel `DB_*` pada file `.env`, lalu jalankan ulang `php artisan migrate`.
+
+---
+
+## Akun Demo
+
+Setelah menjalankan `php artisan db:seed`, tersedia akun berikut (semua dengan kata sandi **`password`**):
+
+| Peran | Username | Email |
+| --- | --- | --- |
+| Super Admin | `superadmin` | superadmin@sekolah.test |
+| Admin Operasional | `admin` | admin@sekolah.test |
+| Guru | `guru` | guru@sekolah.test |
+| Guru | `guru.andi` | guru.andi@sekolah.test |
+| Guru | `guru.rina` | guru.rina@sekolah.test |
+| Guru | `guru.joko` | guru.joko@sekolah.test |
+| Siswa | `siswa` | siswa@sekolah.test |
+| Orang Tua | `ortu` | ortu@sekolah.test |
+
+Login memakai kolom **username** (bisa juga NIS untuk siswa) beserta pemilihan peran.
+
+---
+
+## Menjalankan Aplikasi
+
+Jalankan server pengembangan (server PHP + Vite + queue + log sekaligus):
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer run dev
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+Atau jalankan secara terpisah:
 
-## Contributing
+```bash
+php artisan serve      # http://localhost:8000
+npm run dev            # Vite dev server (hot reload)
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Testing
 
-## Code of Conduct
+```bash
+composer run test
+# atau
+php artisan test --compact
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Test dijalankan pada database SQLite in-memory (lihat `phpunit.xml`), sehingga tidak mengganggu data pengembangan.
 
-## Security Vulnerabilities
+### Format kode
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+vendor/bin/pint
+```
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## Struktur Direktori
+
+```
+app/
+├── Enums/          # Enum domain (peran, status absensi, dll.)
+├── Exports/        # Definisi ekspor Excel & PDF
+├── Http/
+│   ├── Controllers/
+│   └── Requests/   # Validasi form per domain
+├── Models/
+└── Services/       # Logika bisnis (absensi, penilaian, backup, konten, dsb.)
+
+resources/
+├── js/             # Skrip UI (vanilla JS)
+├── css/            # Tailwind CSS
+└── views/
+    ├── admin/      # Panel admin
+    ├── attendance/ # Modul absensi
+    ├── components/ # Komponen Blade yang dapat dipakai ulang
+    └── exports/    # Template PDF
+
+tests/Feature/      # Test fitur per modul
+```
+
+---
+
+## Catatan Deployment
+
+- Wajib menjalankan `php artisan storage:link` agar media (logo sekolah, foto/video agenda, lampiran izin) dapat diakses publik.
+- Jalankan `npm run build` setiap kali ada perubahan aset frontend.
+- Gunakan `php artisan migrate --force` (bukan `migrate:fresh`) saat deploy ke produksi.
+- Aplikasi siap dideploy ke [Laravel Cloud](https://cloud.laravel.com/).
+
+---
+
+## Lisensi
+
+Proyek ini bersifat open-source dengan lisensi [MIT](https://opensource.org/licenses/MIT).
