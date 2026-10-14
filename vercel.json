@@ -2,7 +2,6 @@
     "$schema": "https://openapi.vercel.sh/vercel.json",
     "buildCommand": "composer run vercel",
     "outputDirectory": "public",
-    "framework": "none",
     "installCommand": "composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader --ignore-platform-reqs",
     "functions": {
         "api/index.php": {
@@ -12,6 +11,7 @@
         }
     },
     "routes": [
+        { "handle": "filesystem" },
         { "src": "/(.*)", "dest": "/api/index.php" }
     ],
     "env": {

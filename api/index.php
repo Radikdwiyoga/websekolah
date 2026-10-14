@@ -9,6 +9,20 @@
  * directly by returning `false`; everything else is handled by the Laravel
  * front controller.
  */
+
+// Ensure required writable directories exist in /tmp on serverless runtime
+foreach ([
+    '/tmp/views',
+    '/tmp/storage/framework/cache',
+    '/tmp/storage/framework/sessions',
+    '/tmp/storage/framework/views',
+    '/tmp/storage/logs',
+] as $dir) {
+    if (! is_dir($dir)) {
+        @mkdir($dir, 0755, true);
+    }
+}
+
 $publicPath = __DIR__.'/../public';
 
 $uri = urldecode(
