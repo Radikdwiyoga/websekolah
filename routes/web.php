@@ -35,7 +35,40 @@ use App\Http\Controllers\TeacherAssignmentController;
 use App\Http\Controllers\TeacherAttendanceController;
 use App\Http\Controllers\TeacherClassController;
 use App\Http\Controllers\TeacherGradeController;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/debug-error', function () {
+    try {
+        DB::connection()->getPdo();
+        $userCount = User::count();
+
+        return response()->json([
+            'status' => 'connected',
+            'user_count' => $userCount,
+            'db_connection' => config('database.default'),
+            'db_host' => config('database.connections.pgsql.host'),
+            'db_port' => config('database.connections.pgsql.port'),
+            'db_database' => config('database.connections.pgsql.database'),
+            'db_username' => config('database.connections.pgsql.username'),
+            'app_key_set' => ! empty(config('app.key')),
+            'session_driver' => config('session.driver'),
+            'cache_store' => config('cache.default'),
+        ]);
+    } catch (Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+            'file' => $e->getFile().':'.$e->getLine(),
+            'trace' => collect($e->getTrace())->take(3),
+            'db_connection' => config('database.default'),
+            'db_host' => config('database.connections.pgsql.host'),
+            'db_port' => config('database.connections.pgsql.port'),
+            'app_key_set' => ! empty(config('app.key')),
+        ], 500);
+    }
+});
 
 Route::get('/', HomeController::class)->name('home');
 
