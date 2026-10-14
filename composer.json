@@ -11,6 +11,7 @@
         "barryvdh/laravel-dompdf": "^3.1",
         "laravel/framework": "^13.17",
         "laravel/tinker": "^3.0",
+        "league/flysystem-aws-s3-v3": "^3.35",
         "maatwebsite/excel": "^4.0"
     },
     "require-dev": {
@@ -47,6 +48,11 @@
         "dev": [
             "Composer\\Config::disableProcessTimeout",
             "@php artisan dev"
+        ],
+        "vercel": [
+            "@php artisan package:discover --ansi",
+            "npm ci",
+            "npm run build"
         ],
         "test": [
             "@php artisan config:clear --ansi @no_additional_args",

@@ -1,5 +1,34 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Object Storage Switch
+|--------------------------------------------------------------------------
+|
+| On serverless hosts (Vercel) the deployment filesystem is read-only, so the
+| "local" and "public" disks must point at an external object storage. When
+| FILESYSTEM_DISK=s3 those two disks are backed by the S3-compatible driver
+| (Supabase Storage). Locally nothing changes.
+|
+*/
+
+$useObjectStorage = env('FILESYSTEM_DISK') === 's3';
+
+$objectStorageDisk = static function (string $bucket, ?string $url = null): array {
+    return [
+        'driver' => 's3',
+        'key' => env('AWS_ACCESS_KEY_ID'),
+        'secret' => env('AWS_SECRET_ACCESS_KEY'),
+        'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
+        'bucket' => $bucket,
+        'url' => $url,
+        'endpoint' => env('AWS_ENDPOINT'),
+        'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', true),
+        'throw' => false,
+        'report' => false,
+    ];
+};
+
 return [
 
     /*
@@ -30,22 +59,26 @@ return [
 
     'disks' => [
 
-        'local' => [
-            'driver' => 'local',
-            'root' => storage_path('app/private'),
-            'serve' => true,
-            'throw' => false,
-            'report' => false,
-        ],
+        'local' => $useObjectStorage
+            ? $objectStorageDisk(env('AWS_PRIVATE_BUCKET', env('AWS_BUCKET')))
+            : [
+                'driver' => 'local',
+                'root' => storage_path('app/private'),
+                'serve' => true,
+                'throw' => false,
+                'report' => false,
+            ],
 
-        'public' => [
-            'driver' => 'local',
-            'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
-            'visibility' => 'public',
-            'throw' => false,
-            'report' => false,
-        ],
+        'public' => $useObjectStorage
+            ? $objectStorageDisk(env('AWS_BUCKET'), env('AWS_URL'))
+            : [
+                'driver' => 'local',
+                'root' => storage_path('app/public'),
+                'url' => rtrim(env('APP_URL'), '/').'/storage',
+                'visibility' => 'public',
+                'throw' => false,
+                'report' => false,
+            ],
 
         's3' => [
             'driver' => 's3',

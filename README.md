@@ -202,10 +202,42 @@ tests/Feature/      # Test fitur per modul
 
 ## Catatan Deployment
 
+### Umum
+
 - Wajib menjalankan `php artisan storage:link` agar media (logo sekolah, foto/video agenda, lampiran izin) dapat diakses publik.
 - Jalankan `npm run build` setiap kali ada perubahan aset frontend.
 - Gunakan `php artisan migrate --force` (bukan `migrate:fresh`) saat deploy ke produksi.
 - Aplikasi siap dideploy ke [Laravel Cloud](https://cloud.laravel.com/).
+
+### Deploy ke Vercel + Supabase
+
+Aplikasi dapat dijalankan di **Vercel** (runtime `vercel-php`) dengan **Supabase** sebagai database PostgreSQL sekaligus object storage. Konfigurasinya sudah disiapkan pada `vercel.json`, `api/index.php`, `api/php.ini`, dan `.env.vercel.example`.
+
+**1. Siapkan Supabase**
+
+- **Database** — salin connection string **Transaction pooler** (port `6543`) dari Settings → Database.
+- **Storage** — buat dua bucket: satu **public** (mis. `sekolah-public`) dan satu **private** (mis. `sekolah-private`), lalu buat **S3 access keys** dari Storage → S3 Connection.
+
+**2. Migrasi database** (jalankan dari komputer lokal, pakai koneksi direct/session port `5432` untuk DDL):
+
+```bash
+DB_CONNECTION=pgsql \
+DB_URL="postgresql://postgres.<ref>:<password>@aws-0-<region>.pooler.supabase.com:5432/postgres" \
+php artisan migrate --force
+```
+
+**3. Environment Variables di Vercel** — salin dari `.env.vercel.example`. Yang wajib:
+
+- `APP_KEY` (dari `php artisan key:generate --show`) dan `APP_URL` (domain Vercel)
+- `DB_*` memakai transaction pooler (port `6543`)
+- `AWS_*` untuk Supabase Storage
+
+**4. Deploy** — hubungkan repositori ke Vercel. Saat build, Vercel menjalankan `composer install` lalu skrip `vercel` pada `composer.json` (`package:discover`, `npm ci`, `npm run build`).
+
+> **Keterbatasan Vercel**
+> - Runtime PHP di Vercel **tidak menyertakan ekstensi `gd`** — ekspor Excel/PDF berbasis teks tetap berjalan, tetapi gambar (mis. logo) tidak dirender.
+> - **Batas body request ~4.5 MB** per function: unggahan foto/video besar akan ditolak; untuk agenda sebaiknya gunakan URL video eksternal (YouTube/Vimeo).
+> - Filesystem deployment bersifat hanya-baca, sehingga cache & view dikompilasi ke `/tmp` dan media disimpan di Supabase Storage (tidak perlu `storage:link`).
 
 ---
 

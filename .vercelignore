@@ -1,0 +1,12 @@
+# Installed during the Vercel build (composer install / npm ci).
+/vendor
+/node_modules
+
+# Not needed at runtime.
+/.git
+/.github
+/tests
+/phpunit.xml
+/.idea
+/.vscode
+/.editorconfig
