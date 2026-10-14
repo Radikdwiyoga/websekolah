@@ -50,9 +50,7 @@
             "@php artisan dev"
         ],
         "vercel": [
-            "@php artisan package:discover --ansi",
-            "npm ci",
-            "npm run build"
+            "@php artisan package:discover --ansi"
         ],
         "test": [
             "@php artisan config:clear --ansi @no_additional_args",
