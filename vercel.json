@@ -28,6 +28,7 @@
         }
     ],
     "env": {
+        "APP_DEBUG": "true",
         "VERCEL_PHP_DOCROOT": "public",
         "APP_CONFIG_CACHE": "/tmp/config.php",
         "APP_EVENTS_CACHE": "/tmp/events.php",
