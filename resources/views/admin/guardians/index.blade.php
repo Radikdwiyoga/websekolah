@@ -6,7 +6,11 @@
             title="Data Orang Tua"
             description="Daftar wali murid terdaftar, nomor WhatsApp notifikasi, dan siswa terkait."
             :breadcrumb="[['label' => 'Dashboard', 'route' => 'dashboard.admin'], ['label' => 'Data Orang Tua']]"
-        />
+        >
+            <x-slot name="actions">
+                <x-button :href="route('admin.guardians.create')" icon="plus">Tambah Orang Tua</x-button>
+            </x-slot>
+        </x-page-header>
 
         <x-card>
             <form method="GET" class="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -23,8 +27,8 @@
 
         <x-card>
             @if ($guardians->isEmpty())
-                <x-empty-state icon="guardian" title="Tidak ada data orang tua">
-                    Belum ada wali murid yang cocok dengan pencarian.
+                <x-empty-state icon="guardian" title="Belum ada data orang tua">
+                    Tambahkan wali murid untuk mulai menghubungkan mereka dengan siswa.
                 </x-empty-state>
             @else
                 <div class="overflow-x-auto">
@@ -35,7 +39,8 @@
                                 <th class="pb-2 pr-4">No. WhatsApp / HP</th>
                                 <th class="pb-2 pr-4">Siswa Terhubung</th>
                                 <th class="pb-2 pr-4">Pekerjaan</th>
-                                <th class="pb-2 text-right">Status Akun</th>
+                                <th class="pb-2 pr-4">Status Akun</th>
+                                <th class="pb-2 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-neutral-100">
@@ -43,14 +48,14 @@
                                 <tr>
                                     <td class="py-3 pr-4">
                                         <div class="flex items-center gap-3">
-                                            <x-avatar :name="$guardian->user?->name ?? 'Wali'" size="sm" />
+                                            <x-avatar :name="$guardian->user?->name" />
                                             <div>
-                                                <p class="font-medium text-neutral-900">{{ $guardian->user?->name ?? '—' }}</p>
-                                                <p class="text-xs text-neutral-400">{{ $guardian->user?->email ?? $guardian->user?->username }}</p>
+                                                <p class="font-medium text-neutral-900">{{ $guardian->user?->name }}</p>
+                                                <p class="text-xs text-neutral-500">{{ $guardian->user?->email ?? $guardian->user?->username }}</p>
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="py-3 pr-4 text-xs font-mono font-medium text-neutral-800">
+                                    <td class="py-3 pr-4 font-mono text-xs text-neutral-600">
                                         {{ $guardian->phone ?? $guardian->user?->phone ?? '—' }}
                                     </td>
                                     <td class="py-3 pr-4">
@@ -62,20 +67,33 @@
                                                     <div class="flex items-center gap-1.5 text-xs text-neutral-700">
                                                         <span class="font-semibold">{{ $student->user?->name }}</span>
                                                         <span class="text-neutral-400">({{ $student->schoolClass?->name ?? '—' }})</span>
+                                                        @if ($student->pivot->is_primary)
+                                                            <x-badge variant="success">Wali Utama</x-badge>
+                                                        @endif
                                                     </div>
                                                 @endforeach
                                             </div>
                                         @endif
                                     </td>
-                                    <td class="py-3 pr-4 text-xs text-neutral-600">
-                                        {{ $guardian->occupation ?? '—' }}
-                                    </td>
-                                    <td class="py-3 text-right">
-                                        @if ($guardian->user?->is_active ?? true)
+                                    <td class="py-3 pr-4 text-xs text-neutral-600">{{ $guardian->occupation ?? '—' }}</td>
+                                    <td class="py-3 pr-4">
+                                        @if ($guardian->user?->is_active)
                                             <x-badge variant="success" dot>Aktif</x-badge>
                                         @else
                                             <x-badge variant="neutral">Nonaktif</x-badge>
                                         @endif
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <x-button :href="route('admin.guardians.edit', $guardian)" variant="ghost" size="sm" icon="edit">Edit</x-button>
+                                            <form method="POST" action="{{ route('admin.guardians.toggle-status', $guardian) }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <x-button type="submit" variant="ghost" size="sm">
+                                                    {{ $guardian->user?->is_active ? 'Nonaktifkan' : 'Aktifkan' }}
+                                                </x-button>
+                                            </form>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -92,4 +110,3 @@
         </x-card>
     </div>
 </x-app-layout>
-

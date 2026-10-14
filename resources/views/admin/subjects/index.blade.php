@@ -6,7 +6,11 @@
             title="Data Mata Pelajaran"
             description="Daftar mata pelajaran dan guru yang ditugaskan mengajar."
             :breadcrumb="[['label' => 'Dashboard', 'route' => 'dashboard.admin'], ['label' => 'Mata Pelajaran']]"
-        />
+        >
+            <x-slot name="actions">
+                <x-button :href="route('admin.subjects.create')" icon="plus">Tambah Mata Pelajaran</x-button>
+            </x-slot>
+        </x-page-header>
 
         <x-card>
             <form method="GET" class="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -23,8 +27,8 @@
 
         <x-card>
             @if ($subjects->isEmpty())
-                <x-empty-state icon="book" title="Tidak ada mata pelajaran">
-                    Belum ada mata pelajaran yang cocok dengan pencarian.
+                <x-empty-state icon="book" title="Belum ada mata pelajaran">
+                    Tambahkan mata pelajaran untuk mulai menyusun penugasan mengajar.
                 </x-empty-state>
             @else
                 <div class="overflow-x-auto">
@@ -34,34 +38,36 @@
                                 <th class="pb-2 pr-4">Kode</th>
                                 <th class="pb-2 pr-4">Nama Mata Pelajaran</th>
                                 <th class="pb-2 pr-4">Guru Pengampu</th>
-                                <th class="pb-2 text-right">Penugasan Kelas</th>
+                                <th class="pb-2 pr-4">Penugasan Kelas</th>
+                                <th class="pb-2 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-neutral-100">
                             @foreach ($subjects as $subject)
                                 <tr>
-                                    <td class="py-3 pr-4 font-mono text-xs font-bold text-neutral-700">
-                                        {{ $subject->code }}
-                                    </td>
-                                    <td class="py-3 pr-4 font-semibold text-neutral-900">
-                                        {{ $subject->name }}
-                                    </td>
+                                    <td class="py-3 pr-4 font-mono text-xs font-bold text-neutral-700">{{ $subject->code }}</td>
+                                    <td class="py-3 pr-4 font-semibold text-neutral-900">{{ $subject->name }}</td>
                                     <td class="py-3 pr-4">
                                         @php
-                                            $teachers = $subject->teachingAssignments->pluck('teacher.user.name')->filter()->unique();
+                                            $teacherNames = $subject->teachingAssignments->pluck('teacher.user.name')->filter()->unique();
                                         @endphp
-                                        @if ($teachers->isEmpty())
+                                        @if ($teacherNames->isEmpty())
                                             <span class="text-xs text-neutral-400">Belum ada guru</span>
                                         @else
                                             <div class="flex flex-wrap gap-1">
-                                                @foreach ($teachers as $teacherName)
+                                                @foreach ($teacherNames as $teacherName)
                                                     <x-badge variant="neutral">{{ $teacherName }}</x-badge>
                                                 @endforeach
                                             </div>
                                         @endif
                                     </td>
-                                    <td class="py-3 text-right text-xs text-neutral-500">
+                                    <td class="py-3 pr-4 text-xs text-neutral-500">
                                         {{ $subject->teachingAssignments->count() }} Penugasan
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="flex justify-end">
+                                            <x-button :href="route('admin.subjects.edit', $subject)" variant="ghost" size="sm" icon="edit">Edit</x-button>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -72,4 +78,3 @@
         </x-card>
     </div>
 </x-app-layout>
-

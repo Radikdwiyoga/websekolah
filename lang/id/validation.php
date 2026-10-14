@@ -216,6 +216,7 @@ return [
         'attachment' => 'lampiran',
         'class_id' => 'kelas',
         'subject_id' => 'mata pelajaran',
+        'subject_ids' => 'mata pelajaran',
         'teacher_id' => 'guru',
         'student_id' => 'siswa',
         'guardian_id' => 'orang tua',

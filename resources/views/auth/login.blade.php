@@ -7,8 +7,8 @@
 
             <div class="relative">
                 <div class="flex items-center gap-3">
-                    <span class="flex h-11 w-11 items-center justify-center rounded-lg bg-white/10 text-base font-bold">WS</span>
-                    <span class="text-lg font-semibold">{{ $schoolName }}</span>
+                    <x-layout.school-logo :school="$school" dark box-class="h-11 w-11" text-class="text-base" />
+                    <span class="text-lg font-semibold">{{ $school['name'] }}</span>
                 </div>
             </div>
 
@@ -34,7 +34,7 @@
             </div>
 
             <p class="relative mt-12 text-xs text-primary-100/70">
-                &copy; {{ date('Y') }} {{ $schoolName }}
+                &copy; {{ date('Y') }} {{ $school['name'] }}
             </p>
         </aside>
 

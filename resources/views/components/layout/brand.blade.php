@@ -1,10 +1,12 @@
 @props(['dark' => false, 'responsiveName' => false])
 
-<a href="{{ route('dashboard') }}" class="flex shrink-0 items-center gap-2.5" aria-label="{{ config('app.name', 'Website Sekolah') }}">
-    <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-700 text-base font-bold text-white shadow-sm">
-        WS
-    </span>
+@php
+    $school = app(\App\Services\SchoolProfileService::class)->all();
+@endphp
+
+<a href="{{ route('dashboard') }}" class="flex shrink-0 items-center gap-2.5" aria-label="{{ $school['name'] }}">
+    <x-layout.school-logo :school="$school" :dark="$dark" box-class="h-10 w-10" text-class="text-base" />
     <span class="{{ $responsiveName ? 'hidden lg:inline' : '' }} text-lg font-semibold {{ $dark ? 'text-white' : 'text-primary-900' }}">
-        {{ config('app.name', 'Website Sekolah') }}
+        {{ $school['name'] }}
     </span>
 </a>

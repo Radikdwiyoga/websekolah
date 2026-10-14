@@ -5,6 +5,7 @@
         'beranda' => 'Beranda',
         'tentang' => 'Tentang',
         'program' => 'Program',
+        'agenda' => 'Agenda',
         'berita' => 'Berita',
         'kontak' => 'Kontak',
     ];

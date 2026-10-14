@@ -1,11 +1,15 @@
 <?php
 
+use App\Http\Controllers\AdminAgendaController;
 use App\Http\Controllers\AdminAnnouncementController;
 use App\Http\Controllers\AdminAssignmentController;
 use App\Http\Controllers\AdminAttendanceController;
+use App\Http\Controllers\AdminBackupController;
 use App\Http\Controllers\AdminClassController;
 use App\Http\Controllers\AdminGuardianController;
+use App\Http\Controllers\AdminHomepageController;
 use App\Http\Controllers\AdminMaintenanceController;
+use App\Http\Controllers\AdminSchoolProfileController;
 use App\Http\Controllers\AdminSchoolYearController;
 use App\Http\Controllers\AdminSettingsController;
 use App\Http\Controllers\AdminStudentController;
@@ -167,15 +171,54 @@ Route::middleware('auth')->group(function () {
             Route::get('siswa/{student}/ubah', [AdminStudentController::class, 'edit'])->name('students.edit');
             Route::put('siswa/{student}', [AdminStudentController::class, 'update'])->name('students.update');
             Route::patch('siswa/{student}/status', [AdminStudentController::class, 'toggleStatus'])->name('students.toggle-status');
+
             Route::get('guru', [AdminTeacherController::class, 'index'])->name('teachers.index');
+            Route::get('guru/tambah', [AdminTeacherController::class, 'create'])->name('teachers.create');
+            Route::post('guru', [AdminTeacherController::class, 'store'])->name('teachers.store');
+            Route::get('guru/{teacher}/ubah', [AdminTeacherController::class, 'edit'])->name('teachers.edit');
+            Route::put('guru/{teacher}', [AdminTeacherController::class, 'update'])->name('teachers.update');
+            Route::patch('guru/{teacher}/status', [AdminTeacherController::class, 'toggleStatus'])->name('teachers.toggle-status');
+            Route::post('guru/{teacher}/penugasan', [AdminTeacherController::class, 'assignTeaching'])->name('teachers.assign');
+            Route::delete('guru/{teacher}/penugasan/{assignment}', [AdminTeacherController::class, 'removeTeaching'])->name('teachers.unassign');
+
             Route::get('orang-tua', [AdminGuardianController::class, 'index'])->name('guardians.index');
+            Route::get('orang-tua/tambah', [AdminGuardianController::class, 'create'])->name('guardians.create');
+            Route::post('orang-tua', [AdminGuardianController::class, 'store'])->name('guardians.store');
+            Route::get('orang-tua/{guardian}/ubah', [AdminGuardianController::class, 'edit'])->name('guardians.edit');
+            Route::put('orang-tua/{guardian}', [AdminGuardianController::class, 'update'])->name('guardians.update');
+            Route::patch('orang-tua/{guardian}/status', [AdminGuardianController::class, 'toggleStatus'])->name('guardians.toggle-status');
+            Route::post('orang-tua/{guardian}/anak', [AdminGuardianController::class, 'attachStudent'])->name('guardians.attach-student');
+            Route::delete('orang-tua/{guardian}/anak/{student}', [AdminGuardianController::class, 'detachStudent'])->name('guardians.detach-student');
+
             Route::get('kelas', [AdminClassController::class, 'index'])->name('classes.index');
+            Route::get('kelas/tambah', [AdminClassController::class, 'create'])->name('classes.create');
+            Route::post('kelas', [AdminClassController::class, 'store'])->name('classes.store');
             Route::get('kelas/{schoolClass}', [AdminClassController::class, 'show'])->name('classes.show');
+            Route::get('kelas/{schoolClass}/ubah', [AdminClassController::class, 'edit'])->name('classes.edit');
+            Route::put('kelas/{schoolClass}', [AdminClassController::class, 'update'])->name('classes.update');
+
             Route::get('mata-pelajaran', [AdminSubjectController::class, 'index'])->name('subjects.index');
+            Route::get('mata-pelajaran/tambah', [AdminSubjectController::class, 'create'])->name('subjects.create');
+            Route::post('mata-pelajaran', [AdminSubjectController::class, 'store'])->name('subjects.store');
+            Route::get('mata-pelajaran/{subject}/ubah', [AdminSubjectController::class, 'edit'])->name('subjects.edit');
+            Route::put('mata-pelajaran/{subject}', [AdminSubjectController::class, 'update'])->name('subjects.update');
+
             Route::get('tahun-ajaran', [AdminSchoolYearController::class, 'index'])->name('school-years.index');
+            Route::get('tahun-ajaran/tambah', [AdminSchoolYearController::class, 'create'])->name('school-years.create');
+            Route::post('tahun-ajaran', [AdminSchoolYearController::class, 'store'])->name('school-years.store');
             Route::post('tahun-ajaran/{schoolYear}/aktifkan', [AdminSchoolYearController::class, 'activate'])->name('school-years.activate');
+            Route::get('tahun-ajaran/{schoolYear}/ubah', [AdminSchoolYearController::class, 'edit'])->name('school-years.edit');
+            Route::put('tahun-ajaran/{schoolYear}', [AdminSchoolYearController::class, 'update'])->name('school-years.update');
 
             Route::get('tugas', [AdminAssignmentController::class, 'index'])->name('assignments.index');
+
+            Route::get('agenda', [AdminAgendaController::class, 'index'])->name('agendas.index');
+            Route::get('agenda/tambah', [AdminAgendaController::class, 'create'])->name('agendas.create');
+            Route::post('agenda', [AdminAgendaController::class, 'store'])->name('agendas.store');
+            Route::get('agenda/{agenda}/ubah', [AdminAgendaController::class, 'edit'])->name('agendas.edit');
+            Route::put('agenda/{agenda}', [AdminAgendaController::class, 'update'])->name('agendas.update');
+            Route::delete('agenda/{agenda}', [AdminAgendaController::class, 'destroy'])->name('agendas.destroy');
+            Route::patch('agenda/{agenda}/status', [AdminAgendaController::class, 'togglePublished'])->name('agendas.toggle-status');
 
             Route::get('maintenance', [AdminMaintenanceController::class, 'index'])->name('maintenance.index');
             Route::post('maintenance/toggle', [AdminMaintenanceController::class, 'toggle'])->name('maintenance.toggle');
@@ -191,6 +234,15 @@ Route::middleware('auth')->group(function () {
             Route::get('/', [AdminAttendanceController::class, 'index'])->name('index');
             Route::get('rekap', [AdminAttendanceController::class, 'recap'])->name('recap');
             Route::get('rekap/ekspor', [AdminAttendanceController::class, 'recapExport'])->name('recap.export');
+        });
+
+    Route::middleware('role:admin')
+        ->prefix('admin/backup')
+        ->name('admin.backups.')
+        ->group(function () {
+            Route::get('/', [AdminBackupController::class, 'index'])->name('index');
+            Route::get('absensi', [AdminBackupController::class, 'attendance'])->name('attendance');
+            Route::get('tugas-nilai', [AdminBackupController::class, 'assignments'])->name('assignments');
         });
 
     Route::middleware('role:student')
@@ -226,6 +278,10 @@ Route::middleware('auth')->group(function () {
         ->prefix('settings')
         ->name('admin.settings.')
         ->group(function () {
+            Route::get('sekolah', [AdminSchoolProfileController::class, 'edit'])->name('school.edit');
+            Route::put('sekolah', [AdminSchoolProfileController::class, 'update'])->name('school.update');
+            Route::get('halaman-utama', [AdminHomepageController::class, 'edit'])->name('homepage.edit');
+            Route::put('halaman-utama', [AdminHomepageController::class, 'update'])->name('homepage.update');
             Route::get('/', [AdminSettingsController::class, 'index'])->name('index');
             Route::get('{key}/edit', [AdminSettingsController::class, 'edit'])->name('edit');
             Route::post('{key}/update', [AdminSettingsController::class, 'update'])->name('update');

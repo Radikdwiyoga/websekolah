@@ -49,7 +49,7 @@
             <div class="border-t border-neutral-200 p-4">
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
-                    <x-button variant="outline" size="sm" icon="logout" class="w-full">Keluar</x-button>
+                    <x-button type="submit" variant="outline" size="sm" icon="logout" class="w-full">Keluar</x-button>
                 </form>
             </div>
         </aside>
@@ -73,7 +73,7 @@
                         <span class="hidden max-w-48 truncate text-sm font-medium text-neutral-700 lg:block">{{ $user->name }}</span>
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <x-button variant="ghost" size="sm" icon="logout">Keluar</x-button>
+                            <x-button type="submit" variant="ghost" size="sm" icon="logout">Keluar</x-button>
                         </form>
                     @endif
                 </div>

@@ -62,7 +62,11 @@ return [
 
         $shared['announcements'],
 
-        ['label' => 'Pengaturan', 'icon' => 'settings', 'route' => 'admin.settings.index', 'active' => ['admin.settings.*'], 'section' => 'Administrasi'],
+        ['label' => 'Profil Sekolah', 'icon' => 'school', 'route' => 'admin.settings.school.edit', 'active' => ['admin.settings.school.*'], 'section' => 'Administrasi'],
+        ['label' => 'Halaman Utama', 'icon' => 'dashboard', 'route' => 'admin.settings.homepage.edit', 'active' => ['admin.settings.homepage.*']],
+        ['label' => 'Agenda & Galeri', 'icon' => 'photo', 'route' => 'admin.agendas.index', 'active' => ['admin.agendas.*']],
+        ['label' => 'Pengaturan Sistem', 'icon' => 'settings', 'route' => 'admin.settings.index', 'active' => ['admin.settings.index', 'admin.settings.edit', 'admin.settings.update']],
+        ['label' => 'Backup & Ekspor', 'icon' => 'download', 'route' => 'admin.backups.index', 'active' => ['admin.backups.*']],
         ['label' => 'Maintenance', 'icon' => 'wrench', 'route' => 'admin.maintenance.index', 'active' => ['admin.maintenance.*']],
         ['label' => 'System Log', 'icon' => 'log', 'route' => 'admin.system-logs.index', 'active' => ['admin.system-logs.*']],
 

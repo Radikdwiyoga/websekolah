@@ -56,7 +56,12 @@
     <x-card>
         <div class="flex flex-wrap items-center justify-between gap-3">
             <h2 class="text-base font-semibold text-neutral-900">Rekap {{ $recap['monthLabel'] }}</h2>
-            <x-button :href="route($exportRoute, $exportParams)" variant="outline" size="sm" icon="download">Unduh Excel</x-button>
+            <div class="flex flex-wrap items-center gap-2">
+                <x-button :href="route($exportRoute, $exportParams)" variant="outline" size="sm" icon="download">Unduh Excel</x-button>
+                @isset($backupRoute)
+                    <x-button :href="route($backupRoute, array_filter(['class_id' => $recap['selectedClassId']]))" variant="ghost" size="sm" icon="report">Backup &amp; Ekspor</x-button>
+                @endisset
+            </div>
         </div>
 
         @if ($recap['rows']->isEmpty())

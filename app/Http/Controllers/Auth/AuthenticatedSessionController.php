@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
-use App\Services\SettingService;
+use App\Services\SchoolProfileService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,11 +17,11 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(SettingService $settings): View
+    public function create(SchoolProfileService $schoolProfile): View
     {
         return view('auth.login', [
             'roles' => UserRole::cases(),
-            'schoolName' => $settings->get('school_name', config('app.name', 'Website Sekolah')),
+            'school' => $schoolProfile->all(),
         ]);
     }
 

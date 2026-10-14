@@ -4,9 +4,13 @@
     <div class="space-y-6">
         <x-page-header
             title="Data Kelas"
-            description="Daftar kelas, tingkat, jurusan, wali kelas, dan jumlah siswa."
+            description="Daftar kelas, tingkat, wali kelas, dan jumlah siswa."
             :breadcrumb="[['label' => 'Dashboard', 'route' => 'dashboard.admin'], ['label' => 'Data Kelas']]"
-        />
+        >
+            <x-slot name="actions">
+                <x-button :href="route('admin.classes.create', ['school_year_id' => $selectedYearId])" icon="plus">Tambah Kelas</x-button>
+            </x-slot>
+        </x-page-header>
 
         <x-card>
             <form method="GET" class="flex flex-col gap-3 sm:flex-row sm:items-end">
@@ -27,7 +31,10 @@
         <x-card>
             @if ($classes->isEmpty())
                 <x-empty-state icon="school" title="Belum ada data kelas">
-                    Belum ada kelas terdaftar pada tahun ajaran ini.
+                    Tambahkan kelas untuk memulai pengelolaan data kelas.
+                    <x-slot name="action">
+                        <x-button :href="route('admin.classes.create', ['school_year_id' => $selectedYearId])" icon="plus">Tambah Kelas</x-button>
+                    </x-slot>
                 </x-empty-state>
             @else
                 <div class="overflow-x-auto">
@@ -36,10 +43,10 @@
                             <tr class="border-b border-neutral-200 text-left text-xs font-medium uppercase tracking-wide text-neutral-500">
                                 <th class="pb-2 pr-4">Nama Kelas</th>
                                 <th class="pb-2 pr-4">Tingkat</th>
-                                <th class="pb-2 pr-4">Jurusan</th>
                                 <th class="pb-2 pr-4">Tahun Ajaran</th>
                                 <th class="pb-2 pr-4">Wali Kelas</th>
-                                <th class="pb-2 text-right">Jumlah Siswa</th>
+                                <th class="pb-2 pr-4">Jumlah Siswa</th>
+                                <th class="pb-2 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-neutral-100">
@@ -50,24 +57,23 @@
                                             {{ $class->name }}
                                         </a>
                                     </td>
-                                    <td class="py-3 pr-4 text-neutral-600">
-                                        Kelas {{ $class->level }}
-                                    </td>
-                                    <td class="py-3 pr-4 text-neutral-600">
-                                        {{ $class->major ?? 'Umum' }}
-                                    </td>
+                                    <td class="py-3 pr-4 text-neutral-600">{{ $class->level ? 'Kelas '.$class->level : '—' }}</td>
                                     <td class="py-3 pr-4">
                                         <x-badge :variant="$class->schoolYear?->is_active ? 'success' : 'neutral'">
                                             {{ $class->schoolYear?->name ?? '—' }}
                                         </x-badge>
                                     </td>
-                                    <td class="py-3 pr-4 text-neutral-700">
-                                        {{ $class->homeroomTeacher?->user?->name ?? 'Belum ditentukan' }}
-                                    </td>
-                                    <td class="py-3 text-right">
+                                    <td class="py-3 pr-4 text-neutral-700">{{ $class->homeroomTeacher?->user?->name ?? 'Belum ditentukan' }}</td>
+                                    <td class="py-3 pr-4">
                                         <span class="inline-flex items-center rounded-full bg-primary-50 px-2.5 py-0.5 text-xs font-bold text-primary-700">
                                             {{ $class->students_count }} Siswa
                                         </span>
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <x-button :href="route('admin.classes.show', $class)" variant="ghost" size="sm">Detail</x-button>
+                                            <x-button :href="route('admin.classes.edit', $class)" variant="ghost" size="sm" icon="edit">Edit</x-button>
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -78,4 +84,3 @@
         </x-card>
     </div>
 </x-app-layout>
-

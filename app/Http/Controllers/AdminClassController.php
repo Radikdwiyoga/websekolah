@@ -2,13 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SchoolClass\StoreSchoolClassRequest;
+use App\Http\Requests\SchoolClass\UpdateSchoolClassRequest;
 use App\Models\SchoolClass;
 use App\Models\SchoolYear;
+use App\Models\Teacher;
+use App\Services\SchoolClassService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class AdminClassController extends Controller
 {
+    public function __construct(
+        private readonly SchoolClassService $classes,
+    ) {}
+
     /**
      * Display classes with homeroom teachers and student counts.
      */
@@ -24,7 +34,7 @@ class AdminClassController extends Controller
             ->orderBy('name')
             ->get();
 
-        $schoolYears = SchoolYear::query()->orderByDesc('starts_at')->get();
+        $schoolYears = SchoolYear::query()->orderByDesc('start_date')->get();
 
         return view('admin.classes.index', [
             'classes' => $classes,
@@ -50,5 +60,57 @@ class AdminClassController extends Controller
             'class' => $schoolClass,
             'students' => $students,
         ]);
+    }
+
+    public function create(Request $request): View
+    {
+        return view('admin.classes.create', [
+            'schoolYears' => $this->schoolYears(),
+            'teachers' => $this->teachers(),
+            'selectedYearId' => $request->integer('school_year_id') ?: SchoolYear::query()->where('is_active', true)->value('id'),
+        ]);
+    }
+
+    public function store(StoreSchoolClassRequest $request): RedirectResponse
+    {
+        $class = $this->classes->create($request->validated(), $request->user());
+
+        return redirect()
+            ->route('admin.classes.show', $class)
+            ->with('success', 'Kelas '.$class->name.' berhasil ditambahkan.');
+    }
+
+    public function edit(SchoolClass $schoolClass): View
+    {
+        return view('admin.classes.edit', [
+            'class' => $schoolClass->load('schoolYear'),
+            'schoolYears' => $this->schoolYears(),
+            'teachers' => $this->teachers(),
+        ]);
+    }
+
+    public function update(UpdateSchoolClassRequest $request, SchoolClass $schoolClass): RedirectResponse
+    {
+        $this->classes->update($schoolClass, $request->validated(), $request->user());
+
+        return redirect()
+            ->route('admin.classes.show', $schoolClass)
+            ->with('success', 'Data kelas berhasil diperbarui.');
+    }
+
+    /**
+     * @return Collection<int, SchoolYear>
+     */
+    private function schoolYears(): Collection
+    {
+        return SchoolYear::query()->orderByDesc('start_date')->get();
+    }
+
+    /**
+     * @return Collection<int, Teacher>
+     */
+    private function teachers(): Collection
+    {
+        return Teacher::query()->with('user')->orderBy('id')->get();
     }
 }

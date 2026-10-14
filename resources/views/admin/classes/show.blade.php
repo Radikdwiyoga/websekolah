@@ -8,6 +8,7 @@
             :breadcrumb="[['label' => 'Dashboard', 'route' => 'dashboard.admin'], ['label' => 'Data Kelas', 'route' => 'admin.classes.index'], ['label' => $class->name]]"
         >
             <x-slot name="actions">
+                <x-button :href="route('admin.classes.edit', $class)" variant="outline" icon="edit">Edit Kelas</x-button>
                 <x-button :href="route('admin.students.create', ['class_id' => $class->id])" icon="plus">Tambah Siswa</x-button>
             </x-slot>
         </x-page-header>

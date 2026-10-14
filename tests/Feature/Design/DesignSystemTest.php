@@ -2,6 +2,8 @@
 
 namespace Tests\Feature\Design;
 
+use App\Enums\SettingType;
+use App\Models\ApplicationSetting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Blade;
@@ -13,6 +15,11 @@ class DesignSystemTest extends TestCase
 
     public function test_dashboard_shell_renders_brand_and_logout_for_every_role(): void
     {
+        ApplicationSetting::query()->updateOrCreate(
+            ['key' => 'school_name'],
+            ['value' => 'SMA Nusantara', 'type' => SettingType::Text, 'group' => 'school'],
+        );
+
         $users = [
             User::factory()->asStudent()->create(),
             User::factory()->asTeacher()->create(),
@@ -24,7 +31,7 @@ class DesignSystemTest extends TestCase
             $this->actingAs($user)
                 ->get(route($user->role->dashboardRoute()))
                 ->assertOk()
-                ->assertSee('WS')
+                ->assertSee('SMA Nusantara')
                 ->assertSee('Keluar');
         }
     }

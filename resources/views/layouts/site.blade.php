@@ -11,15 +11,20 @@
 </head>
 <body class="flex min-h-screen flex-col overflow-x-hidden bg-neutral-50 font-sans text-neutral-950 antialiased">
     @php
-        $settings = app(\App\Services\SettingService::class);
-        $school = [
-            'name' => $settings->get('school_name', config('app.name', 'Website Sekolah')),
-            'npsn' => $settings->get('school_npsn'),
-            'address' => $settings->get('school_address'),
-            'phone' => $settings->get('school_phone'),
-            'email' => $settings->get('school_email'),
-            'headmaster' => $settings->get('headmaster_name'),
+        $school = app(\App\Services\SchoolProfileService::class)->all();
+        $socialLabels = [
+            'facebook' => 'Facebook',
+            'instagram' => 'Instagram',
+            'youtube' => 'YouTube',
+            'tiktok' => 'TikTok',
+            'twitter' => 'X',
         ];
+        $schoolAddress = trim(implode(', ', array_filter([
+            $school['address'],
+            $school['city'],
+            $school['province'],
+            $school['postal_code'],
+        ])));
     @endphp
 
     {{-- Mobile drawer toggle --}}
@@ -29,7 +34,7 @@
     <header class="sticky top-0 z-40 border-b border-neutral-200 bg-white/85 backdrop-blur">
         <div class="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
             <a href="#beranda" class="flex min-w-0 items-center gap-2.5">
-                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary-700 text-base font-bold text-white shadow-sm">WS</span>
+                <x-layout.school-logo :school="$school" box-class="h-10 w-10" text-class="text-base" />
                 <span class="truncate text-lg font-semibold text-primary-900">{{ $school['name'] }}</span>
             </a>
 
@@ -54,7 +59,7 @@
     <aside class="peer-checked:translate-x-0 fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col bg-white shadow-lg transition-transform duration-200 lg:hidden">
         <div class="flex h-16 items-center justify-between border-b border-neutral-200 px-4">
             <a href="#beranda" class="flex min-w-0 items-center gap-2.5">
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary-700 text-sm font-bold text-white">WS</span>
+                <x-layout.school-logo :school="$school" box-class="h-9 w-9" text-class="text-sm" />
                 <span class="truncate text-base font-semibold text-primary-900">{{ $school['name'] }}</span>
             </a>
             <label for="site-drawer" class="-mr-2 flex h-9 w-9 cursor-pointer items-center justify-center rounded-md text-neutral-500 transition hover:bg-neutral-100" aria-label="Tutup menu navigasi">
@@ -83,21 +88,34 @@
             <div class="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
                 <div>
                     <div class="flex items-center gap-2.5">
-                        <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-white/10 text-base font-bold">WS</span>
+                        <x-layout.school-logo :school="$school" dark box-class="h-10 w-10" text-class="text-base" />
                         <p class="text-lg font-semibold">{{ $school['name'] }}</p>
                     </div>
                     <p class="mt-4 max-w-xs text-sm leading-relaxed text-primary-100/80">
-                        Bersama membangun generasi masa depan melalui pendidikan yang aman, nyaman, dan bermutu.
+                        {{ $school['motto'] ?: 'Bersama membangun generasi masa depan melalui pendidikan yang aman, nyaman, dan bermutu.' }}
                     </p>
+
+                    @if (collect($school['social'])->filter()->isNotEmpty())
+                        <div class="mt-5 flex flex-wrap gap-2">
+                            @foreach ($school['social'] as $platform => $url)
+                                @if ($url)
+                                    <a href="{{ $url }}" target="_blank" rel="noopener noreferrer" title="{{ $socialLabels[$platform] ?? $platform }}" aria-label="{{ $socialLabels[$platform] ?? $platform }}"
+                                        class="flex h-9 w-9 items-center justify-center rounded-full bg-white/10 text-primary-100 transition hover:bg-white/20 hover:text-white">
+                                        <x-social-icon :name="$platform" :size="4" />
+                                    </a>
+                                @endif
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
 
                 <div>
                     <h3 class="text-sm font-semibold uppercase tracking-wider text-primary-100/60">Kontak Sekolah</h3>
                     <ul class="mt-4 space-y-3 text-sm text-primary-100/90">
-                        @if ($school['address'])
+                        @if ($schoolAddress)
                             <li class="flex gap-3">
                                 <x-icon name="school" class="mt-0.5 h-5 w-5 shrink-0 text-primary-100/50" />
-                                <span>{{ $school['address'] }}</span>
+                                <span>{{ $schoolAddress }}</span>
                             </li>
                         @endif
                         @if ($school['phone'])
@@ -106,10 +124,22 @@
                                 <span>{{ $school['phone'] }}</span>
                             </li>
                         @endif
+                        @if ($school['whatsapp'])
+                            <li class="flex gap-3">
+                                <x-social-icon name="whatsapp" :size="5" class="mt-0.5 shrink-0 text-primary-100/50" />
+                                <span>{{ $school['whatsapp'] }}</span>
+                            </li>
+                        @endif
                         @if ($school['email'])
                             <li class="flex gap-3">
                                 <x-icon name="check" class="mt-0.5 h-5 w-5 shrink-0 text-primary-100/50" />
                                 <span class="break-all">{{ $school['email'] }}</span>
+                            </li>
+                        @endif
+                        @if ($school['website'])
+                            <li class="flex gap-3">
+                                <x-icon name="info" class="mt-0.5 h-5 w-5 shrink-0 text-primary-100/50" />
+                                <a href="{{ $school['website'] }}" target="_blank" rel="noopener noreferrer" class="break-all transition hover:text-white">{{ $school['website'] }}</span></a>
                             </li>
                         @endif
                     </ul>
@@ -120,6 +150,12 @@
                     <ul class="mt-4 space-y-3 text-sm text-primary-100/90">
                         @if ($school['npsn'])
                             <li>NPSN: <span class="font-medium text-white">{{ $school['npsn'] }}</span></li>
+                        @endif
+                        @if ($school['level'])
+                            <li>Jenjang: <span class="font-medium text-white">{{ $school['level'] }}</span></li>
+                        @endif
+                        @if ($school['accreditation'])
+                            <li>Akreditasi: <span class="font-medium text-white">{{ $school['accreditation'] }}</span></li>
                         @endif
                         @if ($school['headmaster'])
                             <li>Kepala Sekolah: <span class="font-medium text-white">{{ $school['headmaster'] }}</span></li>

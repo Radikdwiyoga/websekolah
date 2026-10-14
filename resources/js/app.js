@@ -95,6 +95,90 @@ document.querySelectorAll('[data-repeater]').forEach((repeater) => {
     repeater.dataset.repeaterNext = String(index);
 });
 
+// --- Conditional fields by select value -------------------------------------
+// A select marked [data-conditional-select="<selector>"] reveals the elements
+// with a matching [data-conditional-value="<value>"] inside the scope while
+// hiding the rest. Multiple comma separated values are supported.
+document.querySelectorAll('[data-conditional-select]').forEach((select) => {
+    const scope = document.querySelector(select.dataset.conditionalSelect) || select.closest('form') || document;
+    const panels = Array.from(scope.querySelectorAll('[data-conditional-value]'));
+
+    if (panels.length === 0) {
+        return;
+    }
+
+    const update = () => {
+        panels.forEach((panel) => {
+            const values = String(panel.dataset.conditionalValue || '').split(',').map((value) => value.trim());
+            panel.classList.toggle('hidden', !values.includes(select.value));
+        });
+    };
+
+    select.addEventListener('change', update);
+    update();
+});
+
+// --- Icon select ------------------------------------------------------------
+// Custom dropdown marked [data-icon-select] that lists the real icons. A hidden
+// input holds the value; click handling is delegated so rows added by the
+// repeater after load keep working.
+const closeIconSelects = (except = null) => {
+    document.querySelectorAll('[data-icon-select]').forEach((root) => {
+        if (root === except) {
+            return;
+        }
+
+        root.querySelector('[data-icon-select-menu]')?.classList.add('hidden');
+    });
+};
+
+document.addEventListener('click', (event) => {
+    const option = event.target.closest('[data-icon-select-option]');
+
+    if (option) {
+        const root = option.closest('[data-icon-select]');
+        const value = option.dataset.value;
+
+        root.querySelector('[data-icon-select-input]').value = value;
+        root.querySelector('[data-icon-select-label]').textContent = option.dataset.label || value;
+        root.querySelector('[data-icon-select-preview]').innerHTML =
+            option.querySelector('[data-icon-select-icon]').innerHTML;
+
+        root.querySelectorAll('[data-icon-select-option]').forEach((item) => {
+            const selected = item === option;
+            item.classList.toggle('bg-primary-50', selected);
+            item.classList.toggle('text-primary-800', selected);
+            item.classList.toggle('text-neutral-700', !selected);
+            item.querySelector('[data-icon-select-check]')?.classList.toggle('hidden', !selected);
+        });
+
+        closeIconSelects();
+        return;
+    }
+
+    const trigger = event.target.closest('[data-icon-select-trigger]');
+
+    if (trigger) {
+        const root = trigger.closest('[data-icon-select]');
+        const menu = root.querySelector('[data-icon-select-menu]');
+        const isOpen = !menu.classList.contains('hidden');
+
+        closeIconSelects(root);
+        menu.classList.toggle('hidden', isOpen);
+        return;
+    }
+
+    if (!event.target.closest('[data-icon-select]')) {
+        closeIconSelects();
+    }
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        closeIconSelects();
+    }
+});
+
 // --- Answer progress --------------------------------------------------------
 // Forms marked [data-progress] show live completion feedback for the given
 // number of questions. The element [data-progress-bar] fills as answers change.

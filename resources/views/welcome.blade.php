@@ -13,10 +13,10 @@
             <div class="max-w-xl">
                 <x-badge variant="primary" dot>Selamat datang di {{ $school['name'] }}</x-badge>
                 <h1 class="mt-4 text-h1 text-primary-900 lg:text-display">
-                    Bersama Membangun Generasi Masa Depan
+                    {{ $home['hero_title'] }}
                 </h1>
                 <p class="mt-4 text-lg leading-relaxed text-neutral-600">
-                    Sekolah yang aman, nyaman, dan mendukung perkembangan potensi setiap siswa.
+                    {{ $home['hero_subtitle'] }}
                 </p>
                 <div class="mt-8 flex flex-wrap gap-3">
                     <x-button href="#tentang" size="lg" icon="book">Lihat Profil Sekolah</x-button>
@@ -31,7 +31,7 @@
 
                 <div class="relative rounded-2xl border border-neutral-200 bg-white p-7 shadow-lg">
                     <div class="flex items-center justify-between gap-4">
-                        <span class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary-700 text-lg font-bold text-white shadow-sm">WS</span>
+                        <x-layout.school-logo :school="$school" box-class="h-12 w-12" text-class="text-lg" />
                         <x-badge variant="success" dot>Aktif</x-badge>
                     </div>
 
@@ -62,26 +62,23 @@
         <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
             <div class="max-w-2xl">
                 <x-badge variant="primary">Keunggulan</x-badge>
-                <h2 class="mt-3 text-h2 text-neutral-950">Mengapa Memilih Sekolah Kami?</h2>
-                <p class="mt-3 text-neutral-600">
-                    Kami memadukan pembelajaran bermutu dengan lingkungan yang aman dan dukungan penuh bagi orang tua.
-                </p>
+                <h2 class="mt-3 text-h2 text-neutral-950">{{ $home['advantages_heading'] }}</h2>
+                @if ($home['advantages_description'])
+                    <p class="mt-3 text-neutral-600">
+                        {{ $home['advantages_description'] }}
+                    </p>
+                @endif
             </div>
 
-            <div class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-                <x-feature-card icon="book" tone="primary" title="Pendidikan Berkualitas">
-                    Kurikulum yang relevan, guru berdedikasi, dan proses belajar yang terukur.
-                </x-feature-card>
-                <x-feature-card icon="school" tone="success" title="Lingkungan Aman">
-                    Sekolah yang bersih, nyaman, dan memprioritaskan keselamatan setiap siswa.
-                </x-feature-card>
-                <x-feature-card icon="grade" tone="warning" title="Pengembangan Karakter">
-                    Pembiasaan budi pekerti dan karakter unggul dalam keseharian belajar.
-                </x-feature-card>
-                <x-feature-card icon="guardian" tone="info" title="Dukungan Orang Tua">
-                    Orang tua terhubung langsung dengan perkembangan anak di sekolah.
-                </x-feature-card>
-            </div>
+            @if (! empty($home['advantages']))
+                <div class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+                    @foreach ($home['advantages'] as $item)
+                        <x-feature-card :icon="$item['icon']" :tone="$item['tone']" :title="$item['title']">
+                            {{ $item['description'] }}
+                        </x-feature-card>
+                    @endforeach
+                </div>
+            @endif
         </div>
     </section>
 
@@ -92,9 +89,7 @@
                 <x-badge variant="info">Tentang Sekolah</x-badge>
                 <h2 class="mt-3 text-h2 text-neutral-950">{{ $school['name'] }}</h2>
                 <p class="mt-4 leading-relaxed text-neutral-600">
-                    {{ $school['name'] }} adalah sekolah yang berkomitmen menciptakan pengalaman belajar yang aman,
-                    nyaman, dan bermakna. Melalui sistem informasi sekolah ini, orang tua dapat memantau kehadiran,
-                    tugas, dan nilai anak secara transparan dan real-time.
+                    {{ $school['description'] ?: $school['name'].' adalah sekolah yang berkomitmen menciptakan pengalaman belajar yang aman, nyaman, dan bermakna. Melalui sistem informasi sekolah ini, orang tua dapat memantau kehadiran, tugas, dan nilai anak secara transparan dan real-time.' }}
                 </p>
                 @if ($school['headmaster'])
                     <p class="mt-6 text-sm text-neutral-500">
@@ -133,43 +128,94 @@
     </div>
 
     {{-- Program Sekolah --}}
+    @php
+        $toneClasses = [
+            'primary' => 'bg-primary-100 text-primary-700',
+            'success' => 'bg-success-100 text-success-700',
+            'warning' => 'bg-warning-100 text-warning-700',
+            'danger' => 'bg-danger-100 text-danger-700',
+            'info' => 'bg-info-100 text-info-700',
+        ];
+    @endphp
+
     <section id="program" class="scroll-mt-16 bg-white">
         <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
             <div class="max-w-2xl">
                 <x-badge variant="success">Program</x-badge>
-                <h2 class="mt-3 text-h2 text-neutral-950">Program dan Layanan Sekolah</h2>
+                <h2 class="mt-3 text-h2 text-neutral-950">{{ $home['programs_heading'] }}</h2>
+                @if ($home['programs_description'])
+                    <p class="mt-3 text-neutral-600">{{ $home['programs_description'] }}</p>
+                @endif
             </div>
 
-            <div class="mt-10 grid gap-5 md:grid-cols-2">
-                <x-card class="flex items-start gap-4">
-                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-primary-100 text-primary-700"><x-icon name="book" :size="5" /></span>
-                    <div>
-                        <h3 class="text-base font-semibold text-neutral-900">Kegiatan Belajar Mengajar</h3>
-                        <p class="mt-1.5 text-sm leading-relaxed text-neutral-600">Jadwal pelajaran terstruktur dengan dukungan penilaian yang transparan.</p>
-                    </div>
-                </x-card>
-                <x-card class="flex items-start gap-4">
-                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-success-100 text-success-700"><x-icon name="students" :size="5" /></span>
-                    <div>
-                        <h3 class="text-base font-semibold text-neutral-900">Ekstrakurikuler</h3>
-                        <p class="mt-1.5 text-sm leading-relaxed text-neutral-600">Wadah pengembangan minat dan bakat siswa di luar jam pelajaran.</p>
-                    </div>
-                </x-card>
-                <x-card class="flex items-start gap-4">
-                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-warning-100 text-warning-700"><x-icon name="grade" :size="5" /></span>
-                    <div>
-                        <h3 class="text-base font-semibold text-neutral-900">Pembinaan Karakter</h3>
-                        <p class="mt-1.5 text-sm leading-relaxed text-neutral-600">Pembiasaan kedisiplinan, akhlak mulia, dan kepemimpinan siswa.</p>
-                    </div>
-                </x-card>
-                <x-card class="flex items-start gap-4">
-                    <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-info-100 text-info-700"><x-icon name="settings" :size="5" /></span>
-                    <div>
-                        <h3 class="text-base font-semibold text-neutral-900">Layanan Digital</h3>
-                        <p class="mt-1.5 text-sm leading-relaxed text-neutral-600">Absensi, tugas, nilai, dan pengumuman dapat diakses dari mana saja.</p>
-                    </div>
-                </x-card>
+            @if (! empty($home['programs']))
+                <div class="mt-10 grid gap-5 md:grid-cols-2">
+                    @foreach ($home['programs'] as $item)
+                        <x-card class="flex items-start gap-4">
+                            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg {{ $toneClasses[$item['tone']] ?? $toneClasses['primary'] }}">
+                                <x-icon :name="$item['icon']" :size="5" />
+                            </span>
+                            <div>
+                                <h3 class="text-base font-semibold text-neutral-900">{{ $item['title'] }}</h3>
+                                @if ($item['description'])
+                                    <p class="mt-1.5 text-sm leading-relaxed text-neutral-600">{{ $item['description'] }}</p>
+                                @endif
+                            </div>
+                        </x-card>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </section>
+
+    {{-- Agenda & Galeri Sekolah --}}
+    <section id="agenda" class="scroll-mt-16">
+        <div class="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
+            <div class="max-w-2xl">
+                <x-badge variant="info">Agenda &amp; Galeri</x-badge>
+                <h2 class="mt-3 text-h2 text-neutral-950">Kegiatan dan Momen Sekolah</h2>
+                <p class="mt-3 text-neutral-600">Dokumentasi foto dan video sebagai media promosi kegiatan sekolah.</p>
             </div>
+
+            @if ($agendas->isEmpty())
+                <div class="mt-10">
+                    <x-empty-state icon="photo" title="Belum ada agenda">
+                        Dokumentasi kegiatan sekolah akan tampil di sini setelah admin mengunggahnya.
+                    </x-empty-state>
+                </div>
+            @else
+                <div class="mt-10 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+                    @foreach ($agendas as $agenda)
+                        <x-card :padding="false" class="flex flex-col overflow-hidden">
+                            <div class="aspect-video w-full overflow-hidden bg-neutral-100">
+                                @if ($agenda->isPhoto() && $agenda->mediaUrl())
+                                    <img src="{{ $agenda->mediaUrl() }}" alt="{{ $agenda->title }}" loading="lazy" class="h-full w-full object-cover">
+                                @elseif ($agenda->isVideo() && $agenda->videoEmbedUrl())
+                                    <iframe src="{{ $agenda->videoEmbedUrl() }}" title="{{ $agenda->title }}" loading="lazy" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="h-full w-full"></iframe>
+                                @elseif ($agenda->isVideo() && $agenda->hasUploadedMedia())
+                                    <video src="{{ $agenda->mediaUrl() }}" controls preload="metadata" class="h-full w-full object-cover"></video>
+                                @elseif ($agenda->isVideo() && $agenda->video_url)
+                                    <video src="{{ $agenda->video_url }}" controls preload="metadata" class="h-full w-full object-cover"></video>
+                                @else
+                                    <span class="flex h-full w-full items-center justify-center text-neutral-400">
+                                        <x-icon :name="$agenda->isVideo() ? 'play' : 'photo'" :size="8" />
+                                    </span>
+                                @endif
+                            </div>
+
+                            <div class="flex flex-1 flex-col p-5">
+                                @if ($agenda->event_date)
+                                    <p class="text-xs font-medium uppercase tracking-wide text-primary-700">{{ $agenda->event_date->translatedFormat('d F Y') }}</p>
+                                @endif
+                                <h3 class="mt-1 text-base font-semibold text-neutral-900">{{ $agenda->title }}</h3>
+                                @if ($agenda->description)
+                                    <p class="mt-2 text-sm leading-relaxed text-neutral-600">{{ $agenda->description }}</p>
+                                @endif
+                            </div>
+                        </x-card>
+                    @endforeach
+                </div>
+            @endif
         </div>
     </section>
 
